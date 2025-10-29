@@ -1,20 +1,22 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import '../data/database/helpers/database_helper.dart';
-import '../data/database/entities/user_entity.dart';
-import '../data/database/entities/package_entity.dart';
-import '../data/database/entities/word_entity.dart';
-import '../data/database/entities/definition_entity.dart';
-import '../data/database/entities/sentence_entity.dart';
-import '../data/database/entities/resource_entity.dart';
+import 'app_database.dart';
+import 'entities/user_entity.dart';
+import 'entities/package_entity.dart';
+import 'entities/word_entity.dart';
+import 'entities/definition_entity.dart';
+import 'entities/sentence_entity.dart';
+import 'entities/resource_entity.dart';
 
 /// Service to seed the database from JSON files in assets/data
 class DatabaseSeederService {
-  /// Seeds the database with data from JSON files
-  /// Returns true if seeding was performed, false if already seeded
-  static Future<bool> seedDatabase() async {
-    final database = await DatabaseHelper.getDatabase();
+  /// Seeder utilities. Prefer using `seedDatabaseWith(AppDatabase)` so callers
+  /// (such as the database provider) can seed the already-open database instance
+  /// and avoid creating an extra DB connection.
 
+  /// Seed using an existing [AppDatabase] instance. This lets callers (e.g. the provider)
+  /// build/open the DB and then run seeding without double-building.
+  static Future<bool> seedDatabaseWith(AppDatabase database) async {
     // Check if already seeded
     final existingUsers = await database.userDao.findAllUsers();
     if (existingUsers.isNotEmpty) {
@@ -39,8 +41,8 @@ class DatabaseSeederService {
         'assets/data/packages.json',
       );
 
-      final usersList = json.decode(usersJson) as List;
-      final packagesList = json.decode(packagesJson) as List;
+      final usersList = json.decode(usersJson) as List<dynamic>;
+      final packagesList = json.decode(packagesJson) as List<dynamic>;
 
       // Seed users
       print('👥 Seeding users...');
@@ -81,7 +83,7 @@ class DatabaseSeederService {
         await database.packageDao.insertPackage(package);
 
         // Insert words
-        final words = packageData['words'] as List;
+        final words = (packageData['words'] as List<dynamic>?) ?? [];
         for (var wordData in words) {
           final word = WordEntity(
             packageRemoteId: packageData['packageId'],
@@ -91,46 +93,38 @@ class DatabaseSeederService {
           totalWords++;
 
           // Insert definitions
-          if (wordData['definitions'] != null) {
-            final definitions = wordData['definitions'] as List;
-            for (var defData in definitions) {
-              final definition = DefinitionEntity(
-                wordId: wordId,
-                text: defData['text'],
-                source: defData['source'],
-              );
-              await database.definitionDao.insertDefinition(definition);
-              totalDefinitions++;
-            }
+          final definitions = (wordData['definitions'] as List<dynamic>?) ?? [];
+          for (var defData in definitions) {
+            final definition = DefinitionEntity(
+              wordId: wordId,
+              text: defData['text'],
+              source: defData['source'],
+            );
+            await database.definitionDao.insertDefinition(definition);
+            totalDefinitions++;
           }
 
           // Insert sentences
-          if (wordData['sentences'] != null) {
-            final sentences = wordData['sentences'] as List;
-            for (var sentData in sentences) {
-              final sentence = SentenceEntity(
-                wordId: wordId,
-                text: sentData['text'],
-              );
-              final sentId = await database.sentenceDao.insertSentence(
-                sentence,
-              );
-              totalSentences++;
+          final sentences = (wordData['sentences'] as List<dynamic>?) ?? [];
+          for (var sentData in sentences) {
+            final sentence = SentenceEntity(
+              wordId: wordId,
+              text: sentData['text'],
+            );
+            final sentId = await database.sentenceDao.insertSentence(sentence);
+            totalSentences++;
 
-              // Insert resources for sentence
-              if (sentData['resources'] != null) {
-                final resources = sentData['resources'] as List;
-                for (var resData in resources) {
-                  final resource = ResourceEntity(
-                    sentenceId: sentId,
-                    title: resData['title'],
-                    url: resData['url'],
-                    type: resData['type'],
-                  );
-                  await database.resourceDao.insertResource(resource);
-                  totalResources++;
-                }
-              }
+            // Insert resources for sentence
+            final resources = (sentData['resources'] as List<dynamic>?) ?? [];
+            for (var resData in resources) {
+              final resource = ResourceEntity(
+                sentenceId: sentId,
+                title: resData['title'],
+                url: resData['url'],
+                type: resData['type'],
+              );
+              await database.resourceDao.insertResource(resource);
+              totalResources++;
             }
           }
         }

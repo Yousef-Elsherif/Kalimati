@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'features/packages/screens/packages_screen.dart';
-import 'core/services/database_seeder_service.dart';
+import 'core/data/database/database_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Seed database on first run
-  await DatabaseSeederService.seedDatabase();
+  // Ensure DB is opened and seeded before app starts. The provider caches
+  // the opened DB instance so the Riverpod provider will reuse it.
+  await openAndSeedDatabase();
 
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
