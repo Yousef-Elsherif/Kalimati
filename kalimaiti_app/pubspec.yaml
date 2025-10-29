@@ -37,8 +37,7 @@ dependencies:
   sqflite: ^2.2.8
   floor: ^1.4.0
   sqflite_common_ffi: ^2.3.0
-  riverpod: ^3.0.3
-  flutter_riverpod: ^3.0.3
+  flutter_riverpod: ^2.5.1
 
 dev_dependencies:
   flutter_test:
