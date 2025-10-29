@@ -56,7 +56,7 @@ class ShellScaffold extends ConsumerWidget {
         scrolledUnderElevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout_outlined),
             color: Colors.black,
             onPressed: () {
               showDialog(

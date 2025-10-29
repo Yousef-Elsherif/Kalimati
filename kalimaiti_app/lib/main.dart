@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/data/database/database_provider.dart';
 import 'core/navigation/app_router.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
