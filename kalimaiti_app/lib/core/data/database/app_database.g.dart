@@ -225,7 +225,21 @@ class _$UserDao extends UserDao {
   }
 
   @override
-  Future<UserEntity?> findUserByEmail(String email) async {
+  Future<UserEntity?> findById(int id) async {
+    return _queryAdapter.query('SELECT * FROM UserEntity WHERE id = ?1',
+        mapper: (Map<String, Object?> row) => UserEntity(
+            id: row['id'] as int?,
+            firstName: row['firstName'] as String,
+            lastName: row['lastName'] as String,
+            email: row['email'] as String,
+            password: row['password'] as String,
+            photoUrl: row['photoUrl'] as String,
+            role: row['role'] as String),
+        arguments: [id]);
+  }
+
+  @override
+  Future<UserEntity?> findByEmail(String email) async {
     return _queryAdapter.query('SELECT * FROM UserEntity WHERE email = ?1',
         mapper: (Map<String, Object?> row) => UserEntity(
             id: row['id'] as int?,
@@ -236,6 +250,21 @@ class _$UserDao extends UserDao {
             photoUrl: row['photoUrl'] as String,
             role: row['role'] as String),
         arguments: [email]);
+  }
+
+  @override
+  Future<UserEntity?> findByUsername(String username) async {
+    return _queryAdapter.query(
+        'SELECT * FROM UserEntity WHERE firstName = ?1 OR lastName = ?1',
+        mapper: (Map<String, Object?> row) => UserEntity(
+            id: row['id'] as int?,
+            firstName: row['firstName'] as String,
+            lastName: row['lastName'] as String,
+            email: row['email'] as String,
+            password: row['password'] as String,
+            photoUrl: row['photoUrl'] as String,
+            role: row['role'] as String),
+        arguments: [username]);
   }
 
   @override

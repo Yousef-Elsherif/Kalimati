@@ -6,8 +6,16 @@ abstract class UserDao {
   @Query('SELECT * FROM UserEntity')
   Future<List<UserEntity>> findAllUsers();
 
+  @Query('SELECT * FROM UserEntity WHERE id = :id')
+  Future<UserEntity?> findById(int id);
+
   @Query('SELECT * FROM UserEntity WHERE email = :email')
-  Future<UserEntity?> findUserByEmail(String email);
+  Future<UserEntity?> findByEmail(String email);
+
+  @Query(
+    'SELECT * FROM UserEntity WHERE firstName = :username OR lastName = :username',
+  )
+  Future<UserEntity?> findByUsername(String username);
 
   @Query(
     'SELECT * FROM UserEntity WHERE email = :email AND password = :password',

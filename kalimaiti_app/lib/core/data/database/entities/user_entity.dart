@@ -21,4 +21,33 @@ class UserEntity {
     required this.photoUrl,
     required this.role,
   });
+
+  // Helper getter for username (combines first and last name)
+  String get username => '$firstName $lastName'.trim();
+
+  // Helper getter for full name
+  String get fullName => '$firstName $lastName'.trim();
+
+  // Helper getter for avatar URL
+  String get avatarUrl => photoUrl;
+
+  UserEntity copyWith({
+    int? id,
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? password,
+    String? photoUrl,
+    String? role,
+  }) {
+    return UserEntity(
+      id: id ?? this.id,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      email: email ?? this.email,
+      password: password ?? this.password,
+      photoUrl: photoUrl ?? this.photoUrl,
+      role: role ?? this.role,
+    );
+  }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod/riverpod.dart';
-import '../../../core/data/database/entities/package_entity.dart';
-import '../domain/contracts/package_repo.dart';
+import '../../../../core/data/database/entities/package_entity.dart';
+import '../../domain/contracts/package_repo.dart';
 import 'repoProvider.dart';
 
 class PackagesState {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/data/database/entities/package_entity.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/data/database/entities/package_entity.dart';
 import '../providers/packages_provider.dart';
 
 class PackagesScreen extends ConsumerStatefulWidget {
@@ -61,11 +62,7 @@ class _PackagesScreenState extends ConsumerState<PackagesScreen> {
             tooltip: 'Login',
             color: Colors.black,
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Login functionality coming soon!'),
-                ),
-              );
+              context.push('/login');
             },
           ),
         ],
