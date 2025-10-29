@@ -68,8 +68,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           );
 
       if (mounted) {
-        // Navigate to home screen after successful login
-        context.go('/home');
+        // Navigate to learning packages screen after successful login
+        context.go('/learningPackages');
       }
     } catch (e) {
       if (mounted) {

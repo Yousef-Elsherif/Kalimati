@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kalimaiti_app/features/auth/presentation/providers/auth_provider.dart';
 
-class ShellScaffold extends StatelessWidget {
-  final bool isAuth;
+class ShellScaffold extends ConsumerWidget {
   final Widget child;
   final int currentIndex;
 
@@ -10,11 +11,36 @@ class ShellScaffold extends StatelessWidget {
     super.key,
     required this.child,
     required this.currentIndex,
-    required this.isAuth,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authNotifierProvider);
+    final isAuth = authState.isAuthenticated;
+
+    if (!isAuth) {
+      return Scaffold(
+        backgroundColor: Colors.grey[100],
+        appBar: AppBar(
+          title: const Text('Learning Packages'),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.person_add_outlined),
+              tooltip: 'Login',
+              color: Colors.black,
+              onPressed: () {
+                context.push('/login');
+              },
+            ),
+          ],
+        ),
+        body: child,
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -23,13 +49,15 @@ class ShellScaffold extends StatelessWidget {
               : currentIndex == 1
               ? 'Learning Packages'
               : 'My Packages',
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.black),
         ),
         backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            color: Colors.white,
+            color: Colors.black,
             onPressed: () {
               showDialog(
                 context: context,
@@ -49,6 +77,8 @@ class ShellScaffold extends StatelessWidget {
                     ),
                     TextButton(
                       onPressed: () {
+                        ref.read(authNotifierProvider.notifier).signOut();
+                        Navigator.of(context).pop();
                         context.go('/learningPackages');
                       },
                       style: TextButton.styleFrom(

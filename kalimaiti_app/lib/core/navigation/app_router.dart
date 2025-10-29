@@ -7,13 +7,6 @@ final router = GoRouter(
   initialLocation: '/learningPackages',
   routes: [
     GoRoute(
-      name: 'learningPackages',
-      path: '/learningPackages',
-      builder: (context, state) {
-        return const PackagesScreen();
-      },
-    ),
-    GoRoute(
       name: 'login',
       path: '/login',
       builder: (context, state) {
@@ -22,7 +15,7 @@ final router = GoRouter(
     ),
     ShellRoute(
       builder: (context, state, child) {
-       int currentIndex;
+        int currentIndex;
         switch (state.uri.toString()) {
           case '/home':
             currentIndex = 0;
@@ -37,12 +30,12 @@ final router = GoRouter(
             currentIndex = 0;
         }
 
-      return ShellScaffold(currentIndex: currentIndex, isAuth: false, child: child);
-    },
+        return ShellScaffold(currentIndex: currentIndex, child: child);
+      },
       routes: [
         GoRoute(
-          name: 'home',
-          path: '/home',
+          name: 'learningPackages',
+          path: '/learningPackages',
           builder: (context, state) {
             return const PackagesScreen();
           },
