@@ -4,28 +4,40 @@ import 'package:go_router/go_router.dart';
 class GuestShellScaffold extends StatelessWidget {
   final Widget child;
   final int currentIndex;
+  final String location;
 
   const GuestShellScaffold({
     super.key,
     required this.child,
     required this.currentIndex,
+    required this.location,
   });
 
   @override
   Widget build(BuildContext context) {
+    final segments = Uri.tryParse(location)?.pathSegments ?? const [];
+    final inferredPackageId = segments.length >= 2 ? segments[1] : null;
+    final canGoBack = inferredPackageId != null;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          currentIndex == 0
-              ? 'Unscrambled sentences'
-              : currentIndex == 1
-              ? 'Flash Cards'
-              : 'Match Pairs',
-          style: const TextStyle(color: Colors.black),
-        ),
         backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
+        leading: canGoBack
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => context.go('/learningPackages'),
+              )
+            : null,
+        title: Text(
+          switch (currentIndex) {
+            0 => 'Unscramble Sentences',
+            1 => 'Flash Cards',
+            2 => 'Match Pairs',
+            _ => 'Learning Games',
+          },
+        ),
       ),
       body: child,
       bottomNavigationBar: BottomNavigationBar(
@@ -33,15 +45,40 @@ class GuestShellScaffold extends StatelessWidget {
         showUnselectedLabels: false,
         currentIndex: currentIndex,
         onTap: (index) {
+          final inferredId = inferredPackageId;
           switch (index) {
             case 0:
-              context.go('/unscrambledSentences');
+              if (inferredId == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Choose a package first to play this mode.'),
+                  ),
+                );
+                return;
+              }
+              context.go('/unscrambledSentences/$inferredId');
               break;
             case 1:
-              context.go('/flashCards');
+              if (inferredId == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Select a package to review flash cards.'),
+                  ),
+                );
+                return;
+              }
+              context.go('/flashCards/$inferredId');
               break;
             case 2:
-              context.go('/matchPairs');
+              if (inferredId == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Select a package to start the matching game.'),
+                  ),
+                );
+                return;
+              }
+              context.go('/matchPairs/$inferredId');
               break;
           }
         },

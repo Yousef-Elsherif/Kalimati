@@ -5,8 +5,10 @@ import 'package:kalimaiti_app/features/auth/presentation/screens/login_screen.da
 import 'package:kalimaiti_app/features/packages/presentation/screens/add_package_screen.dart';
 import 'package:kalimaiti_app/features/auth/presentation/screens/profile_screen.dart';
 import 'package:kalimaiti_app/features/packages/presentation/screens/edit_package_screen.dart';
-import 'package:kalimaiti_app/features/packages/presentation/screens/games/unscrumble_sentences.dart';
-import 'package:kalimaiti_app/features/packages/presentation/screens/games/word_listing.dart';
+import 'package:kalimaiti_app/features/packages/presentation/screens/games/flash_cards_screen.dart';
+import 'package:kalimaiti_app/features/packages/presentation/screens/games/match_pairs_screen.dart';
+import 'package:kalimaiti_app/features/packages/presentation/screens/games/unscrumble_sentences_screen.dart';
+import 'package:kalimaiti_app/features/packages/presentation/screens/games/unscrumble_sentences_game_screen.dart';
 import 'package:kalimaiti_app/features/packages/presentation/screens/mypackages_screen.dart';
 import 'package:kalimaiti_app/features/packages/presentation/screens/packages_screen.dart';
 
@@ -78,58 +80,81 @@ final router = GoRouter(
         return EditPackageScreen(packageId: id);
       },
     ),
-    GoRoute(path: '/packages/:id', builder: (context, state) {
-      final idParam = state.pathParameters['id'];
-      final id = int.tryParse(idParam ?? '');
-      if (id == null) {
-        return const MyPackagesScreen();
-      }
-      return WordListing(packageId: id);
-    }),
     ShellRoute(
       builder: (context, state, child) {
         final location = state.matchedLocation;
         int currentIndex;
-        if (location == '/unscrambledSentences') {
-          currentIndex = 0;
-        } else if (location == '/flashCards') {
+        if (location.startsWith('/flashCards')) {
           currentIndex = 1;
-        } else if (location == '/matchPairs') {
+        } else if (location.startsWith('/unscrambledSentences')) {
+          currentIndex = 0;
+        } else if (location.startsWith('/matchPairs')) {
           currentIndex = 2;
         } else {
           currentIndex = 0;
         }
 
-        return GuestShellScaffold(currentIndex: currentIndex, child: child);
+        return GuestShellScaffold(
+          currentIndex: currentIndex,
+          location: state.uri.toString(),
+          child: child,
+        );
       },
       routes: [
         GoRoute(
-          name: 'unscrambledSentences',
-          path: '/unscrambledSentences/:id',
+          name: 'flashCards',
+          path: '/flashCards/:packageId',
           builder: (context, state) {
-            final idParam = state.pathParameters['id'];
+            final idParam = state.pathParameters['packageId'];
             final id = int.tryParse(idParam ?? '');
             if (id == null) {
               return const MyPackagesScreen();
             }
-            return UnscrambledSentencesScreen(wordId: id);
+            return FlashCardsScreen(packageId: id);
           },
         ),
-        // GoRoute(
-        //   name: 'flashCards',
-        //   path: '/flashCards',
-        //   builder: (context, state) {
-        //     return const FlashCardsScreen();
-        //   },
-        // ),
-        // GoRoute(
-        //   name: 'matchPairs',
-        //   path: '/matchPairs',
-        //   builder: (context, state) {
-        //     return const MatchPairsScreen();
-        //   },
-        // ),
+        GoRoute(
+          name: 'unscrambledSentences',
+          path: '/unscrambledSentences/:packageId',
+          builder: (context, state) {
+            final idParam = state.pathParameters['packageId'];
+            final id = int.tryParse(idParam ?? '');
+            if (id == null) {
+              return const MyPackagesScreen();
+            }
+            return UnscrambledSentencesScreen(packageId: id);
+          },
+        ),
+        GoRoute(
+          name: 'matchPairs',
+          path: '/matchPairs/:packageId',
+          builder: (context, state) {
+            final idParam = state.pathParameters['packageId'];
+            final id = int.tryParse(idParam ?? '');
+            if (id == null) {
+              return const MyPackagesScreen();
+            }
+            return MatchPairsScreen(packageId: id);
+          },
+        ),
       ],
+    ),
+    GoRoute(
+      name: 'unscrambledSentencesPlay',
+      path: '/unscrambledSentences/:packageId/play/:wordId',
+      builder: (context, state) {
+        final packageParam = state.pathParameters['packageId'];
+        final packageId = int.tryParse(packageParam ?? '');
+        final wordParam = state.pathParameters['wordId'];
+        final wordId = int.tryParse(wordParam ?? '');
+        if (packageId == null || wordId == null) {
+          return const MyPackagesScreen();
+        }
+        return UnscrambledSentencesGameScreen(
+          packageId: packageId,
+          wordId: wordId,
+        );
+      },
     ),
   ],
 );

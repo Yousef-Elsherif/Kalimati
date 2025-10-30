@@ -2,21 +2,28 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:kalimaiti_app/core/data/database/entities/sentence_entity.dart';
+import 'package:kalimaiti_app/core/data/database/entities/word_entity.dart';
 import 'package:kalimaiti_app/features/packages/presentation/providers/games_providers.dart';
 
-class UnscrambledSentencesScreen extends ConsumerStatefulWidget {
-  const UnscrambledSentencesScreen({super.key, required this.wordId});
+class UnscrambledSentencesGameScreen extends ConsumerStatefulWidget {
+  const UnscrambledSentencesGameScreen({
+    super.key,
+    required this.packageId,
+    required this.wordId,
+  });
 
+  final int packageId;
   final int wordId;
 
   @override
-  ConsumerState<UnscrambledSentencesScreen> createState() =>
-      _UnscrambledSentencesScreenState();
+  ConsumerState<UnscrambledSentencesGameScreen> createState() =>
+      _UnscrambledSentencesGameScreenState();
 }
 
-class _UnscrambledSentencesScreenState
-    extends ConsumerState<UnscrambledSentencesScreen> {
+class _UnscrambledSentencesGameScreenState
+    extends ConsumerState<UnscrambledSentencesGameScreen> {
   final Random _random = Random();
   final List<_SentenceRound> _rounds = [];
   List<SentenceEntity> _sourceSentences = const [];
@@ -32,44 +39,130 @@ class _UnscrambledSentencesScreenState
 
   @override
   Widget build(BuildContext context) {
-    final sentencesAsync = ref.watch(wordSentencesProvider(widget.wordId));
     final theme = Theme.of(context);
+    final wordsAsync = ref.watch(packageWordsProvider(widget.packageId));
 
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: sentencesAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => _buildErrorState(theme, error.toString()),
-          data: (sentences) {
-            if (sentences.isEmpty) {
-              return _buildEmptyState(theme);
-            }
-
-            final signature = _buildSignature(sentences);
-            if (!_initialized || signature != _signature) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!mounted) return;
-                setState(() {
-                  _initializeRounds(sentences, signature);
-                });
-              });
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (_gameCompleted) {
-              return _buildSummary(theme);
-            }
-
-            if (_rounds.isEmpty) {
-              return _buildEmptyState(theme);
-            }
-
-            final round = _rounds[_currentRoundIndex];
-            return _buildGameView(theme, round);
-          },
+    return wordsAsync.when(
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, _) => Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              'Unable to load words for this package.\n$error',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          ),
         ),
       ),
+      data: (words) {
+        WordEntity? activeWord;
+        for (final candidate in words) {
+          if (candidate.id == widget.wordId) {
+            activeWord = candidate;
+            break;
+          }
+        }
+
+        if (activeWord == null) {
+          return Scaffold(
+            body: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: theme.colorScheme.error,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'We can\'t find that word in this package.',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    FilledButton(
+                      onPressed: () => context.go(
+                        '/unscrambledSentences/${widget.packageId}',
+                      ),
+                      child: const Text('Pick another word'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        final word = activeWord;
+
+        final sentencesAsync = ref.watch(
+          wordSentencesProvider(widget.wordId),
+        );
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(word.text),
+            backgroundColor: Colors.white,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(16),
+            child: sentencesAsync.when(
+              loading: () => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              error: (error, _) => _buildErrorState(theme, error.toString()),
+              data: (sentences) {
+                if (sentences.isEmpty) {
+                  return _buildEmptyState(
+                    theme,
+                    wordLabel: word.text,
+                  );
+                }
+
+                final signature = _buildSignature(widget.wordId, sentences);
+                if (!_initialized || signature != _signature) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
+                    setState(() {
+                      _initializeRounds(sentences, signature);
+                    });
+                  });
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (_gameCompleted) {
+                  return _buildSummary(theme, word.text);
+                }
+
+                if (_rounds.isEmpty) {
+                  return _buildEmptyState(
+                    theme,
+                    wordLabel: word.text,
+                  );
+                }
+
+                final round = _rounds[_currentRoundIndex];
+                return _buildGameView(
+                  theme,
+                  round,
+                  word.text,
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -97,7 +190,14 @@ class _UnscrambledSentencesScreenState
     );
   }
 
-  Widget _buildEmptyState(ThemeData theme) {
+  Widget _buildEmptyState(ThemeData theme, {String? wordLabel}) {
+    final title = wordLabel == null
+        ? 'No practice sentences yet'
+        : 'No sentences for "$wordLabel" yet';
+    final subtitle = wordLabel == null
+        ? 'Once sentences are added for this word, you can practice here.'
+        : 'Add sentences to this word to unlock the activity.';
+
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -109,12 +209,12 @@ class _UnscrambledSentencesScreenState
           ),
           const SizedBox(height: 12),
           Text(
-            'No practice sentences yet',
+            title,
             style: theme.textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
           Text(
-            'Once sentences are added for this word, you can practice here.',
+            subtitle,
             style: theme.textTheme.bodyMedium
                 ?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.7)),
             textAlign: TextAlign.center,
@@ -124,7 +224,11 @@ class _UnscrambledSentencesScreenState
     );
   }
 
-  Widget _buildGameView(ThemeData theme, _SentenceRound round) {
+  Widget _buildGameView(
+    ThemeData theme,
+    _SentenceRound round,
+    String wordLabel,
+  ) {
     final totalRounds = _rounds.length;
     final completedRounds =
         _rounds.where((element) => element.isCompleted).length;
@@ -135,6 +239,13 @@ class _UnscrambledSentencesScreenState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(
+          'Practicing "$wordLabel"',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
         Row(
           children: [
             Chip(
@@ -238,6 +349,7 @@ class _UnscrambledSentencesScreenState
         ),
         const SizedBox(height: 16),
         _buildActionRow(theme, round),
+        const SizedBox(height: 24),
       ],
     );
   }
@@ -387,7 +499,7 @@ class _UnscrambledSentencesScreenState
     );
   }
 
-  Widget _buildSummary(ThemeData theme) {
+  Widget _buildSummary(ThemeData theme, String wordLabel) {
     final totalSentences = _rounds.length;
 
     return Center(
@@ -406,7 +518,7 @@ class _UnscrambledSentencesScreenState
               ),
               const SizedBox(height: 12),
               Text(
-                'Great effort!',
+                'Great work on "$wordLabel"!',
                 style: theme.textTheme.headlineSmall,
               ),
               const SizedBox(height: 8),
@@ -424,16 +536,17 @@ class _UnscrambledSentencesScreenState
               ),
               const SizedBox(height: 20),
               FilledButton.icon(
-                onPressed:
-                    _sourceSentences.isEmpty ? null : () => _restartGame(),
+                onPressed: () => _restartGame(),
                 icon: const Icon(Icons.replay),
                 label: const Text('Play again'),
               ),
               const SizedBox(height: 12),
               TextButton.icon(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => context.go(
+                  '/unscrambledSentences/${widget.packageId}',
+                ),
                 icon: const Icon(Icons.arrow_back),
-                label: const Text('Back to words'),
+                label: const Text('Choose another word'),
               ),
             ],
           ),
@@ -445,7 +558,6 @@ class _UnscrambledSentencesScreenState
   void _initializeRounds(List<SentenceEntity> sentences, String signature) {
     _sourceSentences = sentences;
     _signature = signature;
-    _tokenIdCounter = 0;
     _rounds
       ..clear()
       ..addAll(
@@ -620,10 +732,12 @@ class _UnscrambledSentencesScreenState
     });
   }
 
-  String _buildSignature(List<SentenceEntity> sentences) {
-    return sentences
+  String _buildSignature(int? wordId, List<SentenceEntity> sentences) {
+    final prefix = wordId?.toString() ?? 'unknown';
+    final sentencesKey = sentences
         .map((s) => '${s.id ?? s.text}-${s.text.hashCode}')
         .join('|');
+    return '$prefix::$sentencesKey';
   }
 }
 

@@ -42,7 +42,16 @@ class PackagesScreen extends ConsumerWidget {
     return PackagesListing(
       packages: packagesState.packages,
       onPackageSelected: (PackageEntity package) {
-        context.push('/packages/${package.id}');
+        final packageId = package.id;
+        if (packageId == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Package is missing an identifier.'),
+            ),
+          );
+          return;
+        }
+        context.go('/flashCards/$packageId');
       },
     );
   }
