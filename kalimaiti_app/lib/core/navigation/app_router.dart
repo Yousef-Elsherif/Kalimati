@@ -17,10 +17,10 @@ final router = GoRouter(
       builder: (context, state, child) {
         int currentIndex;
         switch (state.uri.toString()) {
-          case '/home':
+          case '/learningPackages':
             currentIndex = 0;
             break;
-          case '/learningPackages':
+          case '/addPackage':
             currentIndex = 1;
             break;
           case '/myPackages':

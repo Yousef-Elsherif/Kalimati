@@ -17,6 +17,8 @@ class ShellScaffold extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authNotifierProvider);
     final isAuth = authState.isAuthenticated;
+    final user = authState.user;
+    final photoUrl = user?.photoUrl;
 
     if (!isAuth) {
       return Scaffold(
@@ -43,11 +45,33 @@ class ShellScaffold extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leadingWidth: 56,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(24),
+            onTap: () => context.go('/profile'),
+            child: CircleAvatar(
+              radius: 18,
+              backgroundColor: Colors.grey[200],
+              backgroundImage: (photoUrl != null && photoUrl.isNotEmpty)
+                  ? NetworkImage(photoUrl)
+                  : null,
+              child: (photoUrl == null || photoUrl.isEmpty)
+                  ? Icon(
+                      Icons.person,
+                      color: Colors.grey[600],
+                    )
+                  : null,
+            ),
+          ),
+        ),
         title: Text(
           currentIndex == 0
-              ? 'Home'
-              : currentIndex == 1
               ? 'Learning Packages'
+              : currentIndex == 1
+              ? 'Add Package'
               : 'My Packages',
           style: const TextStyle(color: Colors.black),
         ),
@@ -105,30 +129,32 @@ class ShellScaffold extends ConsumerWidget {
       ),
       body: child,
       bottomNavigationBar: BottomNavigationBar(
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
         currentIndex: currentIndex,
         onTap: (index) {
           switch (index) {
             case 0:
-              context.go('/home');
+              context.go('/learningPackages');
               break;
             case 1:
-              context.go('/learningPackages');
+              context.go('/addPackage');
               break;
             case 2:
               context.go('/myPackages');
               break;
           }
         },
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: 'Home',
-            activeIcon: Icon(Icons.home),
+            icon: Icon(Icons.explore_outlined),
+            label: 'Learning Packages',
+            activeIcon: Icon(Icons.explore),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.book_outlined),
-            label: 'Learning Packages',
-            activeIcon: Icon(Icons.book),
+            icon: Icon(Icons.add_outlined),
+            label: 'Add Package',
+            activeIcon: Icon(Icons.add),
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.edit_outlined),
