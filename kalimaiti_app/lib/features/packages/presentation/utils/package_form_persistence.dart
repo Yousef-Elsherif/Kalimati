@@ -58,6 +58,13 @@ Future<void> replacePackageWordHierarchy(
   await insertPackageWordHierarchy(db, packageId, words);
 }
 
+Future<void> deletePackageWordHierarchy(
+  AppDatabase db,
+  int packageId,
+) async {
+  await _clearExistingHierarchy(db, packageId);
+}
+
 Future<void> _clearExistingHierarchy(AppDatabase db, int packageId) async {
   final existingWords = await db.wordDao.findByPackageId(packageId);
 

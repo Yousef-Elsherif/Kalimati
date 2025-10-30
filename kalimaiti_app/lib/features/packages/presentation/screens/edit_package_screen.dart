@@ -143,11 +143,18 @@ class _EditPackageScreenState extends ConsumerState<EditPackageScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
 
     if (_error != null) {
-      return Center(child: Text(_error!));
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Edit Package'),
+        ),
+        body: Center(child: Text(_error!)),
+      );
     }
 
     final package = _package;
@@ -155,10 +162,61 @@ class _EditPackageScreenState extends ConsumerState<EditPackageScreen> {
       return const SizedBox.shrink();
     }
 
-    return PackageForm(
-      initialPackage: package,
-      initialWords: _initialWords,
-      onSubmit: _handleSubmit,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(package.title),
+        actions: [
+          IconButton(
+            tooltip: 'Delete package',
+            icon: const Icon(Icons.delete_outline),
+            onPressed: _handleDelete,
+          ),
+        ],
+      ),
+      body: PackageForm(
+        initialPackage: package,
+        initialWords: _initialWords,
+        onSubmit: _handleSubmit,
+      ),
     );
+  }
+
+  Future<void> _handleDelete() async {
+    final package = _package;
+    final packageId = package?.id;
+    if (package == null || packageId == null) return;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Package'),
+        content: Text(
+          'Are you sure you want to delete "${package.title}"?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    final db = await ref.read(databaseProvider.future);
+    await deletePackageWordHierarchy(db, packageId);
+    await ref.read(packagesNotifierProvider.notifier).deletePackage(package);
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('"${package.title}" deleted')),
+    );
+    context.pop();
   }
 }

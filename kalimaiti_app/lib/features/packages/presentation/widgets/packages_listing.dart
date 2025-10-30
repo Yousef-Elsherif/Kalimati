@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../../../core/data/database/entities/package_entity.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class PackagesListing extends StatefulWidget {
+import '../../../../core/data/database/database_provider.dart';
+import '../../../../core/data/database/entities/package_entity.dart';
+import '../../../../core/data/database/entities/user_entity.dart';
+
+class PackagesListing extends ConsumerStatefulWidget {
   const PackagesListing({
     super.key,
     required this.packages,
@@ -18,12 +22,13 @@ class PackagesListing extends StatefulWidget {
   final ValueChanged<PackageEntity>? onDeletePackage;
 
   @override
-  State<PackagesListing> createState() => _PackagesListingState();
+  ConsumerState<PackagesListing> createState() => _PackagesListingState();
 }
 
-class _PackagesListingState extends State<PackagesListing> {
+class _PackagesListingState extends ConsumerState<PackagesListing> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedLevel = 'All';
+  late Future<Map<String, String>> _authorNamesFuture;
 
   static const List<String> _levels = [
     'All',
@@ -31,6 +36,12 @@ class _PackagesListingState extends State<PackagesListing> {
     'Intermediate',
     'Advanced',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _authorNamesFuture = _loadAuthorNames();
+  }
 
   @override
   void dispose() {
@@ -53,10 +64,29 @@ class _PackagesListingState extends State<PackagesListing> {
     return hay.contains(query);
   }
 
+  Future<Map<String, String>> _loadAuthorNames() async {
+    final db = await ref.read(databaseProvider.future);
+    final users = await db.userDao.findAllUsers();
+    return {
+      for (final UserEntity user in users)
+        user.email.toLowerCase():
+            ('${user.firstName} ${user.lastName}').trim().replaceAll(RegExp(r'\s+'), ' '),
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
+    return FutureBuilder<Map<String, String>>(
+      future: _authorNamesFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final authorNames = snapshot.data ?? const {};
+
+        return Column(
+          children: [
         Container(
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
@@ -324,7 +354,9 @@ class _PackagesListingState extends State<PackagesListing> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Instructor Name',
+                                            authorNames[package.author
+                                                    .toLowerCase()] ??
+                                                package.author,
                                             style: TextStyle(
                                               color: Colors.white
                                                   .withOpacity(0.95),
@@ -546,6 +578,8 @@ class _PackagesListingState extends State<PackagesListing> {
           ),
         ),
       ],
+        );
+      },
     );
   }
 
