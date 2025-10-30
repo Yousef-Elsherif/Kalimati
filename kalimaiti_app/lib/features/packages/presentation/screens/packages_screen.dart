@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/data/database/entities/package_entity.dart';
 import '../widgets/packages_listing.dart';
@@ -41,11 +42,7 @@ class PackagesScreen extends ConsumerWidget {
     return PackagesListing(
       packages: packagesState.packages,
       onPackageSelected: (PackageEntity package) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Selected: ${package.title}'),
-          ),
-        );
+        context.push('/packages/${package.id}');
       },
     );
   }
