@@ -51,7 +51,7 @@ class ShellScaffold extends ConsumerWidget {
           padding: const EdgeInsets.only(left: 16),
           child: InkWell(
             borderRadius: BorderRadius.circular(24),
-            onTap: () => context.go('/profile'),
+            onTap: () => context.push('/profile'),
             child: CircleAvatar(
               radius: 18,
               backgroundColor: Colors.grey[200],
@@ -71,8 +71,8 @@ class ShellScaffold extends ConsumerWidget {
           currentIndex == 0
               ? 'Learning Packages'
               : currentIndex == 1
-              ? 'Add Package'
-              : 'My Packages',
+                  ? 'Add Package'
+                  : 'My Packages',
           style: const TextStyle(color: Colors.black),
         ),
         backgroundColor: Colors.white,

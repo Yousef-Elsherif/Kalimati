@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:kalimaiti_app/features/auth/presentation/providers/auth_provider.dart';
 
@@ -62,11 +63,14 @@ class MyPackagesScreen extends ConsumerWidget {
       packages: myPackages,
       showOwnerActions: true,
       onEditPackage: (PackageEntity package) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Edit ${package.title} tapped'),
-          ),
-        );
+        final id = package.id;
+        if (id == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Unable to edit this package.')),
+          );
+          return;
+        }
+        context.push('/editPackage/$id');
       },
       onDeletePackage: (PackageEntity package) async {
         final confirm = await showDialog<bool>(
