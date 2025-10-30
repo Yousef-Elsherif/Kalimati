@@ -6,8 +6,8 @@ abstract class WordDao {
   @Query('SELECT * FROM WordEntity')
   Future<List<WordEntity>> findAllWords();
 
-  @Query('SELECT * FROM WordEntity WHERE packageRemoteId = :packageRemoteId')
-  Future<List<WordEntity>> findByPackageRemoteId(String packageRemoteId);
+  @Query('SELECT * FROM WordEntity WHERE packageId = :packageId')
+  Future<List<WordEntity>> findByPackageId(int packageId);
 
   @Query('SELECT * FROM WordEntity WHERE text LIKE :searchText')
   Future<List<WordEntity>> searchByText(String searchText);

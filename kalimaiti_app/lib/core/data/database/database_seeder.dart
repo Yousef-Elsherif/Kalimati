@@ -19,16 +19,17 @@ class DatabaseSeederService {
   static Future<bool> seedDatabaseWith(AppDatabase database) async {
     // Check if already seeded
     final existingUsers = await database.userDao.findAllUsers();
-    if (existingUsers.isNotEmpty) {
+    final existingPackages = await database.packageDao.findAllPackages();
+    final existingWords = await database.wordDao.findAllWords();
+
+    final needsUsers = existingUsers.isEmpty;
+    final needsPackages = existingPackages.isEmpty;
+
+    if (!needsUsers && !needsPackages) {
       print('📊 Database already contains data, skipping seed...');
       print('   Found ${existingUsers.length} users in database');
-
-      // Show current counts
-      final packages = await database.packageDao.findAllPackages();
-      final words = await database.wordDao.findAllWords();
-      print('   📦 ${packages.length} packages');
-      print('   📝 ${words.length} words');
-
+      print('   📦 ${existingPackages.length} packages');
+      print('   📝 ${existingWords.length} words');
       return false;
     }
 
@@ -44,103 +45,205 @@ class DatabaseSeederService {
       final usersList = json.decode(usersJson) as List<dynamic>;
       final packagesList = json.decode(packagesJson) as List<dynamic>;
 
-      // Seed users
-      print('👥 Seeding users...');
-      for (var userData in usersList) {
-        final user = UserEntity(
-          firstName: userData['firstName'],
-          lastName: userData['lastName'],
-          email: userData['email'],
-          password: userData['password'],
-          photoUrl: userData['photoUrl'],
-          role: userData['role'],
-        );
-        await database.userDao.insertUser(user);
-      }
-      print('✅ Seeded ${usersList.length} users');
-
-      // Seed packages and related data
-      print('📦 Seeding packages...');
-      int totalWords = 0;
-      int totalDefinitions = 0;
-      int totalSentences = 0;
-      int totalResources = 0;
-
-      for (var packageData in packagesList) {
-        // Insert package
-        final package = PackageEntity(
-          packageRemoteId: packageData['packageId'],
-          author: packageData['author'],
-          category: packageData['category'],
-          description: packageData['description'],
-          iconUrl: packageData['iconUrl'],
-          language: packageData['language'],
-          lastUpdatedDate: packageData['lastUpdatedDate'],
-          level: packageData['level'],
-          title: packageData['title'],
-          version: packageData['version'],
-        );
-        await database.packageDao.insertPackage(package);
-
-        // Insert words
-        final words = (packageData['words'] as List<dynamic>?) ?? [];
-        for (var wordData in words) {
-          final word = WordEntity(
-            packageRemoteId: packageData['packageId'],
-            text: wordData['text'],
+      if (needsUsers) {
+        // Seed users
+        print('👥 Seeding users...');
+        for (var userData in usersList) {
+          final user = UserEntity(
+            firstName: userData['firstName'],
+            lastName: userData['lastName'],
+            email: userData['email'],
+            password: userData['password'],
+            photoUrl: userData['photoUrl'],
+            role: userData['role'],
           );
-          final wordId = await database.wordDao.insertWord(word);
-          totalWords++;
+          await database.userDao.insertUser(user);
+        }
+        print('✅ Seeded ${usersList.length} users');
+      } else {
+        print('👥 Users already present, skipping user seeding.');
+      }
 
-          // Insert definitions
-          final definitions = (wordData['definitions'] as List<dynamic>?) ?? [];
-          for (var defData in definitions) {
-            final definition = DefinitionEntity(
-              wordId: wordId,
-              text: defData['text'],
-              source: defData['source'],
+      if (needsPackages) {
+        // Seed packages and related data
+        print('📦 Seeding packages...');
+        int totalWords = 0;
+        int totalDefinitions = 0;
+        int totalSentences = 0;
+        int totalResources = 0;
+
+        for (var packageData in packagesList) {
+          final packageMap = Map<String, dynamic>.from(
+            packageData as Map<String, dynamic>,
+          );
+          _validatePackageStructure(packageMap);
+          // Insert package
+          final package = PackageEntity(
+            author: packageMap['author'],
+            category: packageMap['category'],
+            description: packageMap['description'],
+            iconUrl: packageMap['iconUrl'],
+            language: packageMap['language'],
+            lastUpdatedDate: packageMap['lastUpdatedDate'],
+            level: packageMap['level'],
+            title: packageMap['title'],
+            version: packageMap['version'],
+          );
+          final packageId = await database.packageDao.insertPackage(package);
+
+          // Insert words
+          final words = (packageMap['words'] as List<dynamic>?) ?? [];
+          for (var wordData in words) {
+            final word = WordEntity(
+              packageId: packageId,
+              text: wordData['text'],
             );
-            await database.definitionDao.insertDefinition(definition);
-            totalDefinitions++;
-          }
+            final wordId = await database.wordDao.insertWord(word);
+            totalWords++;
 
-          // Insert sentences
-          final sentences = (wordData['sentences'] as List<dynamic>?) ?? [];
-          for (var sentData in sentences) {
-            final sentence = SentenceEntity(
-              wordId: wordId,
-              text: sentData['text'],
-            );
-            final sentId = await database.sentenceDao.insertSentence(sentence);
-            totalSentences++;
-
-            // Insert resources for sentence
-            final resources = (sentData['resources'] as List<dynamic>?) ?? [];
-            for (var resData in resources) {
-              final resource = ResourceEntity(
-                sentenceId: sentId,
-                title: resData['title'],
-                url: resData['url'],
-                type: resData['type'],
+            // Insert definitions
+            final definitions =
+                (wordData['definitions'] as List<dynamic>?) ?? [];
+            for (var defData in definitions) {
+              final definition = DefinitionEntity(
+                wordId: wordId,
+                text: defData['text'],
+                source: defData['source'],
               );
-              await database.resourceDao.insertResource(resource);
-              totalResources++;
+              await database.definitionDao.insertDefinition(definition);
+              totalDefinitions++;
+            }
+
+            // Insert sentences
+            final sentences = (wordData['sentences'] as List<dynamic>?) ?? [];
+            for (var sentData in sentences) {
+              final sentence = SentenceEntity(
+                wordId: wordId,
+                text: sentData['text'],
+              );
+              final sentId = await database.sentenceDao.insertSentence(sentence);
+              totalSentences++;
+
+              // Insert resources for sentence
+              final resources =
+                  (sentData['resources'] as List<dynamic>?) ?? [];
+              for (var resData in resources) {
+                final resource = ResourceEntity(
+                  sentenceId: sentId,
+                  title: resData['title'],
+                  url: resData['url'],
+                  type: resData['type'],
+                );
+                await database.resourceDao.insertResource(resource);
+                totalResources++;
+              }
             }
           }
         }
+
+        print('✅ Seeded ${packagesList.length} packages');
+        print('✅ Seeded $totalWords words');
+        print('✅ Seeded $totalDefinitions definitions');
+        print('✅ Seeded $totalSentences sentences');
+        print('✅ Seeded $totalResources resources');
+      } else {
+        print('📦 Packages already present, skipping package seeding.');
       }
 
-      print('✅ Seeded ${packagesList.length} packages');
-      print('✅ Seeded $totalWords words');
-      print('✅ Seeded $totalDefinitions definitions');
-      print('✅ Seeded $totalSentences sentences');
-      print('✅ Seeded $totalResources resources');
       print('🎉 Database seeding completed successfully!');
 
       return true;
     } catch (e) {
       print('❌ Error seeding database: $e');
       rethrow;
+    }
+  }
+
+  static void _validatePackageStructure(Map<String, dynamic> packageData) {
+    final words = packageData['words'];
+    if (words is! List || words.isEmpty) {
+      throw FormatException(
+        'Package "${packageData['title']}" must include at least one word.',
+      );
+    }
+
+    for (final rawWord in words) {
+      if (rawWord is! Map<String, dynamic>) {
+        throw const FormatException('Word entries must be JSON objects.');
+      }
+
+      final wordText = rawWord['text'] as String? ?? '';
+      if (wordText.trim().isEmpty) {
+        throw FormatException(
+          'A word entry in package "${packageData['title']}" is missing "text".',
+        );
+      }
+
+      final definitions = rawWord['definitions'];
+      if (definitions is! List || definitions.isEmpty) {
+        throw FormatException(
+          'Word "$wordText" in package "${packageData['title']}" must have at least one definition.',
+        );
+      }
+
+      for (final def in definitions) {
+        if (def is! Map<String, dynamic>) {
+          throw FormatException(
+            'Definitions for word "$wordText" must be JSON objects.',
+          );
+        }
+        final text = def['text'] as String? ?? '';
+        final source = def['source'] as String? ?? '';
+        if (text.trim().isEmpty || source.trim().isEmpty) {
+          throw FormatException(
+            'Definition entries for word "$wordText" in package "${packageData['title']}" require both "text" and "source".',
+          );
+        }
+      }
+
+      final sentences = rawWord['sentences'];
+      if (sentences is! List || sentences.isEmpty) {
+        throw FormatException(
+          'Word "$wordText" in package "${packageData['title']}" must include at least one sentence.',
+        );
+      }
+
+      for (final sentence in sentences) {
+        if (sentence is! Map<String, dynamic>) {
+          throw FormatException(
+            'Sentences for word "$wordText" must be JSON objects.',
+          );
+        }
+        final sentenceText = sentence['text'] as String? ?? '';
+        if (sentenceText.trim().isEmpty) {
+          throw FormatException(
+            'Sentence entries for word "$wordText" in package "${packageData['title']}" require "text".',
+          );
+        }
+
+        final resources = sentence['resources'];
+        if (resources is! List || resources.isEmpty) {
+          throw FormatException(
+            'Sentence "$sentenceText" for word "$wordText" in package "${packageData['title']}" must include at least one resource.',
+          );
+        }
+
+        for (final resource in resources) {
+          if (resource is! Map<String, dynamic>) {
+            throw FormatException(
+              'Resources for sentence "$sentenceText" must be JSON objects.',
+            );
+          }
+          final title = resource['title'] as String? ?? '';
+          final url = resource['url'] as String? ?? '';
+          final type = resource['type'] as String? ?? '';
+          if (title.trim().isEmpty || url.trim().isEmpty || type.trim().isEmpty) {
+            throw FormatException(
+              'Resources for sentence "$sentenceText" in word "$wordText" must include "title", "url", and "type".',
+            );
+          }
+        }
+      }
     }
   }
 }

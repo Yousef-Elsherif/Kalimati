@@ -12,8 +12,8 @@ class PackageRepoLocalDb implements PackageRepository {
   }
 
   @override
-  Future<PackageEntity?> getPackageByRemoteId(String packageRemoteId)  {
-    return _packageDao.findByRemoteId(packageRemoteId);
+  Future<PackageEntity?> getPackageById(int id)  {
+    return _packageDao.findById(id);
   }
 
   @override

@@ -41,10 +41,11 @@ class PackagesNotifier extends StateNotifier<PackagesState> {
     }
   }
 
-  Future<void> addPackage(PackageEntity package) async {
+  Future<int> addPackage(PackageEntity package) async {
     try {
-      await _repository.addPackage(package);
+      final id = await _repository.addPackage(package);
       await loadPackages();
+      return id;
     } catch (e) {
       state = state.copyWith(error: e.toString());
       rethrow;
@@ -53,7 +54,11 @@ class PackagesNotifier extends StateNotifier<PackagesState> {
 
   Future<void> updatePackage(PackageEntity package) async {
     try {
-      await _repository.updatePackage(package);
+      final updatedPackage = package.copyWith(
+        version: package.version + 1,
+        lastUpdatedDate: DateTime.now().toIso8601String(),
+      );
+      await _repository.updatePackage(updatedPackage);
       await loadPackages();
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -88,8 +93,7 @@ class _LoadingRepository implements PackageRepository {
   Future<List<PackageEntity>> getAllPackages() async => [];
 
   @override
-  Future<PackageEntity?> getPackageByRemoteId(String packageRemoteId) async =>
-      null;
+  Future<PackageEntity?> getPackageById(int id) async => null;
 
   @override
   Future<List<PackageEntity>> getPackagesByCategory(String category) async =>

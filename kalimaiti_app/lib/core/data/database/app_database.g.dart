@@ -90,7 +90,7 @@ class _$AppDatabase extends AppDatabase {
     Callback? callback,
   ]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 1,
+      version: 2,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -108,9 +108,9 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `UserEntity` (`id` INTEGER, `firstName` TEXT NOT NULL, `lastName` TEXT NOT NULL, `email` TEXT NOT NULL, `password` TEXT NOT NULL, `photoUrl` TEXT NOT NULL, `role` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `PackageEntity` (`id` INTEGER, `packageRemoteId` TEXT NOT NULL, `author` TEXT NOT NULL, `category` TEXT NOT NULL, `description` TEXT NOT NULL, `iconUrl` TEXT NOT NULL, `language` TEXT NOT NULL, `lastUpdatedDate` TEXT NOT NULL, `level` TEXT NOT NULL, `title` TEXT NOT NULL, `version` INTEGER NOT NULL, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `PackageEntity` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `author` TEXT NOT NULL, `category` TEXT NOT NULL, `description` TEXT NOT NULL, `iconUrl` TEXT NOT NULL, `language` TEXT NOT NULL, `lastUpdatedDate` TEXT NOT NULL, `level` TEXT NOT NULL, `title` TEXT NOT NULL, `version` INTEGER NOT NULL)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `WordEntity` (`id` INTEGER, `packageRemoteId` TEXT NOT NULL, `text` TEXT NOT NULL, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `WordEntity` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `packageId` INTEGER NOT NULL, `text` TEXT NOT NULL)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `DefinitionEntity` (`id` INTEGER, `wordId` INTEGER NOT NULL, `text` TEXT NOT NULL, `source` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
@@ -318,7 +318,6 @@ class _$PackageDao extends PackageDao {
             'PackageEntity',
             (PackageEntity item) => <String, Object?>{
                   'id': item.id,
-                  'packageRemoteId': item.packageRemoteId,
                   'author': item.author,
                   'category': item.category,
                   'description': item.description,
@@ -335,7 +334,6 @@ class _$PackageDao extends PackageDao {
             ['id'],
             (PackageEntity item) => <String, Object?>{
                   'id': item.id,
-                  'packageRemoteId': item.packageRemoteId,
                   'author': item.author,
                   'category': item.category,
                   'description': item.description,
@@ -352,7 +350,6 @@ class _$PackageDao extends PackageDao {
             ['id'],
             (PackageEntity item) => <String, Object?>{
                   'id': item.id,
-                  'packageRemoteId': item.packageRemoteId,
                   'author': item.author,
                   'category': item.category,
                   'description': item.description,
@@ -381,7 +378,6 @@ class _$PackageDao extends PackageDao {
     return _queryAdapter.queryList('SELECT * FROM PackageEntity',
         mapper: (Map<String, Object?> row) => PackageEntity(
             id: row['id'] as int?,
-            packageRemoteId: row['packageRemoteId'] as String,
             author: row['author'] as String,
             category: row['category'] as String,
             description: row['description'] as String,
@@ -394,12 +390,10 @@ class _$PackageDao extends PackageDao {
   }
 
   @override
-  Future<PackageEntity?> findByRemoteId(String packageRemoteId) async {
-    return _queryAdapter.query(
-        'SELECT * FROM PackageEntity WHERE packageRemoteId = ?1',
+  Future<PackageEntity?> findById(int id) async {
+    return _queryAdapter.query('SELECT * FROM PackageEntity WHERE id = ?1',
         mapper: (Map<String, Object?> row) => PackageEntity(
             id: row['id'] as int?,
-            packageRemoteId: row['packageRemoteId'] as String,
             author: row['author'] as String,
             category: row['category'] as String,
             description: row['description'] as String,
@@ -409,7 +403,7 @@ class _$PackageDao extends PackageDao {
             level: row['level'] as String,
             title: row['title'] as String,
             version: row['version'] as int),
-        arguments: [packageRemoteId]);
+        arguments: [id]);
   }
 
   @override
@@ -418,7 +412,6 @@ class _$PackageDao extends PackageDao {
         'SELECT * FROM PackageEntity WHERE category = ?1',
         mapper: (Map<String, Object?> row) => PackageEntity(
             id: row['id'] as int?,
-            packageRemoteId: row['packageRemoteId'] as String,
             author: row['author'] as String,
             category: row['category'] as String,
             description: row['description'] as String,
@@ -437,7 +430,6 @@ class _$PackageDao extends PackageDao {
         'SELECT * FROM PackageEntity WHERE level = ?1',
         mapper: (Map<String, Object?> row) => PackageEntity(
             id: row['id'] as int?,
-            packageRemoteId: row['packageRemoteId'] as String,
             author: row['author'] as String,
             category: row['category'] as String,
             description: row['description'] as String,
@@ -483,7 +475,7 @@ class _$WordDao extends WordDao {
             'WordEntity',
             (WordEntity item) => <String, Object?>{
                   'id': item.id,
-                  'packageRemoteId': item.packageRemoteId,
+                  'packageId': item.packageId,
                   'text': item.text
                 }),
         _wordEntityUpdateAdapter = UpdateAdapter(
@@ -492,7 +484,7 @@ class _$WordDao extends WordDao {
             ['id'],
             (WordEntity item) => <String, Object?>{
                   'id': item.id,
-                  'packageRemoteId': item.packageRemoteId,
+                  'packageId': item.packageId,
                   'text': item.text
                 }),
         _wordEntityDeletionAdapter = DeletionAdapter(
@@ -501,7 +493,7 @@ class _$WordDao extends WordDao {
             ['id'],
             (WordEntity item) => <String, Object?>{
                   'id': item.id,
-                  'packageRemoteId': item.packageRemoteId,
+                  'packageId': item.packageId,
                   'text': item.text
                 });
 
@@ -522,19 +514,19 @@ class _$WordDao extends WordDao {
     return _queryAdapter.queryList('SELECT * FROM WordEntity',
         mapper: (Map<String, Object?> row) => WordEntity(
             id: row['id'] as int?,
-            packageRemoteId: row['packageRemoteId'] as String,
+            packageId: row['packageId'] as int,
             text: row['text'] as String));
   }
 
   @override
-  Future<List<WordEntity>> findByPackageRemoteId(String packageRemoteId) async {
+  Future<List<WordEntity>> findByPackageId(int packageId) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM WordEntity WHERE packageRemoteId = ?1',
+        'SELECT * FROM WordEntity WHERE packageId = ?1',
         mapper: (Map<String, Object?> row) => WordEntity(
             id: row['id'] as int?,
-            packageRemoteId: row['packageRemoteId'] as String,
+            packageId: row['packageId'] as int,
             text: row['text'] as String),
-        arguments: [packageRemoteId]);
+        arguments: [packageId]);
   }
 
   @override
@@ -543,7 +535,7 @@ class _$WordDao extends WordDao {
         'SELECT * FROM WordEntity WHERE text LIKE ?1',
         mapper: (Map<String, Object?> row) => WordEntity(
             id: row['id'] as int?,
-            packageRemoteId: row['packageRemoteId'] as String,
+            packageId: row['packageId'] as int,
             text: row['text'] as String),
         arguments: [searchText]);
   }

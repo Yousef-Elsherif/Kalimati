@@ -2,11 +2,11 @@ import 'package:floor/floor.dart';
 
 @entity
 class WordEntity {
-  @primaryKey
+  @PrimaryKey(autoGenerate: true)
   final int? id;
 
-  final String packageRemoteId; // points to PackageEntity.packageRemoteId
+  final int packageId; // foreign key to PackageEntity.id
   final String text;
 
-  WordEntity({this.id, required this.packageRemoteId, required this.text});
+  WordEntity({this.id, required this.packageId, required this.text});
 }

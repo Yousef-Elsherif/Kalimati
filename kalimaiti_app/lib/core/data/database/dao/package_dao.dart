@@ -6,8 +6,8 @@ abstract class PackageDao {
   @Query('SELECT * FROM PackageEntity')
   Future<List<PackageEntity>> findAllPackages();
 
-  @Query('SELECT * FROM PackageEntity WHERE packageRemoteId = :packageRemoteId')
-  Future<PackageEntity?> findByRemoteId(String packageRemoteId);
+  @Query('SELECT * FROM PackageEntity WHERE id = :id')
+  Future<PackageEntity?> findById(int id);
 
   @Query('SELECT * FROM PackageEntity WHERE category = :category')
   Future<List<PackageEntity>> findByCategory(String category);

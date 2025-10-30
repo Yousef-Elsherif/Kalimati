@@ -19,7 +19,7 @@ import 'dao/resource_dao.dart';
 part 'app_database.g.dart';
 
 @Database(
-  version: 1,
+  version: 2,
   entities: [
     UserEntity,
     PackageEntity,

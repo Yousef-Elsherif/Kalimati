@@ -1,6 +1,8 @@
 import 'package:go_router/go_router.dart';
 import 'package:kalimaiti_app/core/navigation/widget/shell_scaffold.dart';
 import 'package:kalimaiti_app/features/auth/presentation/screens/login_screen.dart';
+import 'package:kalimaiti_app/features/packages/presentation/screens/add_package_screen.dart';
+import 'package:kalimaiti_app/features/packages/presentation/screens/mypackages_screen.dart';
 import 'package:kalimaiti_app/features/packages/presentation/screens/packages_screen.dart';
 
 final router = GoRouter(
@@ -38,6 +40,20 @@ final router = GoRouter(
           path: '/learningPackages',
           builder: (context, state) {
             return const PackagesScreen();
+          },
+        ),
+        GoRoute(
+          name: 'addPackage',
+          path: '/addPackage',
+          builder: (context, state) {
+            return const AddPackageScreen();
+          },
+        ),
+        GoRoute(
+          name: 'myPackages',
+          path: '/myPackages',
+          builder: (context, state) {
+            return const MyPackagesScreen();
           },
         ),
       ],
