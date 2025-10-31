@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kalimaiti_app/core/navigation/widget/guest_shell_scaffold.dart';
 import 'package:kalimaiti_app/core/navigation/widget/shell_scaffold.dart';
@@ -5,6 +6,8 @@ import 'package:kalimaiti_app/features/auth/presentation/screens/login_screen.da
 import 'package:kalimaiti_app/features/packages/presentation/screens/add_package_screen.dart';
 import 'package:kalimaiti_app/features/auth/presentation/screens/profile_screen.dart';
 import 'package:kalimaiti_app/features/packages/presentation/screens/edit_package_screen.dart';
+import 'package:kalimaiti_app/core/data/database/entities/word_entity.dart';
+import 'package:kalimaiti_app/features/packages/presentation/screens/games/flash_card_detail_screen.dart';
 import 'package:kalimaiti_app/features/packages/presentation/screens/games/flash_cards_screen.dart';
 import 'package:kalimaiti_app/features/packages/presentation/screens/games/match_pairs_screen.dart';
 import 'package:kalimaiti_app/features/packages/presentation/screens/games/unscrumble_sentences_screen.dart';
@@ -12,7 +15,10 @@ import 'package:kalimaiti_app/features/packages/presentation/screens/games/unscr
 import 'package:kalimaiti_app/features/packages/presentation/screens/mypackages_screen.dart';
 import 'package:kalimaiti_app/features/packages/presentation/screens/packages_screen.dart';
 
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
+
 final router = GoRouter(
+  navigatorKey: _rootNavigatorKey,
   initialLocation: '/learningPackages',
   routes: [
     GoRoute(
@@ -112,6 +118,20 @@ final router = GoRouter(
             }
             return FlashCardsScreen(packageId: id);
           },
+          routes: [
+            GoRoute(
+              name: 'flashCardDetail',
+              path: 'word/:wordId',
+              parentNavigatorKey: _rootNavigatorKey,
+              builder: (context, state) {
+                final extra = state.extra;
+                if (extra is! WordEntity) {
+                  return const MyPackagesScreen();
+                }
+                return FlashCardDetailScreen(word: extra);
+              },
+            ),
+          ],
         ),
         GoRoute(
           name: 'unscrambledSentences',

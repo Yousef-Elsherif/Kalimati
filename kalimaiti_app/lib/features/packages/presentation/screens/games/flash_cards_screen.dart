@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:kalimaiti_app/features/packages/presentation/providers/games_providers.dart';
 import 'package:kalimaiti_app/features/packages/presentation/widgets/word_cards_list.dart';
 
@@ -36,7 +37,9 @@ class FlashCardsScreen extends ConsumerWidget {
                 Text(
                   'Tap a card to flip it and see definitions.',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                    color: theme.textTheme.bodyMedium?.color?.withValues(
+                      alpha: 0.7,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -44,7 +47,7 @@ class FlashCardsScreen extends ConsumerWidget {
                   child: WordCardsList(
                     words: words,
                     tapHint: 'Tap to view definitions.',
-                    onWordSelected: (word) async {
+                    onWordSelected: (word) {
                       final wordId = word.id;
                       if (wordId == null) {
                         if (context.mounted) {
@@ -59,83 +62,13 @@ class FlashCardsScreen extends ConsumerWidget {
                         return;
                       }
 
-                      final pairs = await ref.read(
-                        packageWordDefinitionPairsProvider(packageId).future,
-                      );
-                      WordDefinitionPair? pair;
-                      try {
-                        pair = pairs.firstWhere((p) => p.word.id == wordId);
-                      } catch (_) {
-                        pair = null;
-                      }
-
-                      if (!context.mounted) return;
-
-                      if (pair == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'No definitions available for this word.',
-                            ),
-                          ),
-                        );
-                        return;
-                      }
-
-                      final safePair = pair;
-
-                      showModalBottomSheet<void>(
-                        context: context,
-                        isScrollControlled: true,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(
-                            top: Radius.circular(24),
-                          ),
-                        ),
-                        builder: (sheetContext) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 24,
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  word.text,
-                                  style: theme.textTheme.headlineSmall
-                                      ?.copyWith(fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Definition',
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(safePair.definition.text),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Source: ${safePair.definition.source}',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(sheetContext).maybePop(),
-                                    child: const Text('Close'),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
+                      context.pushNamed(
+                        'flashCardDetail',
+                        pathParameters: {
+                          'packageId': packageId.toString(),
+                          'wordId': wordId.toString(),
                         },
+                        extra: word,
                       );
                     },
                   ),
@@ -189,7 +122,7 @@ class FlashCardsScreen extends ConsumerWidget {
           Text(
             'Add words to this package to review them as flash cards.',
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withOpacity(0.7),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             textAlign: TextAlign.center,
           ),
