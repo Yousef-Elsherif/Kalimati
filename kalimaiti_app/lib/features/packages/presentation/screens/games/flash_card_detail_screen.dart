@@ -135,6 +135,17 @@ class _FlashCardDetailScreenState extends ConsumerState<FlashCardDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 8,
+              backgroundColor: theme.colorScheme.primary.withValues(
+                alpha: 0.12,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           Text(
             'Swipe left or right to loop through every aspect of this word.',
             style: theme.textTheme.bodyMedium?.copyWith(
@@ -206,17 +217,6 @@ class _FlashCardDetailScreenState extends ConsumerState<FlashCardDetailScreen> {
                   ),
                 );
               },
-            ),
-          ),
-          const SizedBox(height: 18),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 8,
-              backgroundColor: theme.colorScheme.primary.withValues(
-                alpha: 0.12,
-              ),
             ),
           ),
         ],
@@ -315,14 +315,26 @@ class _FlashCardDetailScreenState extends ConsumerState<FlashCardDetailScreen> {
 
     for (var i = 0; i < allResources.length; i++) {
       final resource = allResources[i];
+      final isImage = _isImageType(
+        resource.type.toLowerCase(),
+        resource.url.toLowerCase(),
+      );
+      final isVideo = _isVideoType(
+        resource.type.toLowerCase(),
+        resource.url.toLowerCase(),
+      );
       slides.add(
         _SlidePayload(
           kind: _SlideKind.resource,
           title: resource.title.isNotEmpty
               ? resource.title
               : 'Resource ${i + 1}',
-          body: _formatResourceType(resource.type, resource.url),
-          caption: resource.url,
+          body: isImage
+              ? 'Image resource'
+              : isVideo
+              ? 'Video resource'
+              : resource.type,
+          caption: isImage || isVideo ? null : 'External reference',
           resources: [resource],
         ),
       );
@@ -376,13 +388,6 @@ class _FlashCardSlide extends StatelessWidget {
         gradient: gradient,
         borderRadius: BorderRadius.circular(26),
         border: Border.all(color: colors.primary.withValues(alpha: 0.08)),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadow.withValues(alpha: 0.16),
-            blurRadius: 18,
-            offset: const Offset(0, 12),
-          ),
-        ],
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
@@ -615,14 +620,21 @@ class _ResourcePreview extends StatelessWidget {
           const SizedBox(height: 10),
           if (preview != null) ...[preview, const SizedBox(height: 12)],
           Text(title, style: theme.textTheme.titleMedium),
-          if (!compact || (!isImage && !isVideo)) ...[
+          if (!compact && !isImage && !isVideo) ...[
             const SizedBox(height: 8),
-            SelectableText(
-              resource.url,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colors.secondary,
-                decoration: TextDecoration.underline,
-              ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.link, size: 16, color: colors.secondary),
+                const SizedBox(width: 6),
+                Text(
+                  'Open externally',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colors.secondary,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
             ),
           ],
         ],
@@ -714,24 +726,26 @@ class _VideoResourcePlayerState extends State<_VideoResourcePlayer> {
         ? 16 / 9
         : controller.value.aspectRatio;
 
+    final showOverlay = !controller.value.isPlaying;
+
     return GestureDetector(
       onTap: _togglePlayback,
       child: Stack(
-        alignment: Alignment.center,
+        alignment: Alignment.bottomRight,
         children: [
           AspectRatio(aspectRatio: aspectRatio, child: VideoPlayer(controller)),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            padding: const EdgeInsets.all(6),
-            child: Icon(
-              controller.value.isPlaying
-                  ? Icons.pause_circle_filled
-                  : Icons.play_circle_fill,
-              color: Colors.white,
-              size: widget.compact ? 48 : 56,
+          AnimatedOpacity(
+            opacity: showOverlay ? 1 : 0,
+            duration: const Duration(milliseconds: 200),
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: IconButton.filled(
+                onPressed: _togglePlayback,
+                icon: Icon(
+                  controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                  size: widget.compact ? 28 : 32,
+                ),
+              ),
             ),
           ),
         ],
