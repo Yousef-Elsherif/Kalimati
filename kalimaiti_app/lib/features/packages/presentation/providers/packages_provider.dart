@@ -86,7 +86,6 @@ final packagesNotifierProvider =
       );
     });
 
-// Temporary placeholder repository for loading state
 class _LoadingRepository implements PackageRepository {
   @override
   Future<List<PackageEntity>> getAllPackages() async => [];

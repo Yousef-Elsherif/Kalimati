@@ -22,13 +22,8 @@ class UserEntity {
     required this.role,
   });
 
-  // Helper getter for username (combines first and last name)
-  String get username => '$firstName $lastName'.trim();
-
-  // Helper getter for full name
   String get fullName => '$firstName $lastName'.trim();
 
-  // Helper getter for avatar URL
   String get avatarUrl => photoUrl;
 
   UserEntity copyWith({

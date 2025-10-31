@@ -44,11 +44,12 @@ class WordCardsList extends StatelessWidget {
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final word = words[index];
-        final badgeLabel =
-            (index + 1).toString().padLeft(2, '0');
+        final badgeLabel = (index + 1).toString().padLeft(2, '0');
 
         final isSelected =
-            selectedWordId != null && word.id != null && word.id == selectedWordId;
+            selectedWordId != null &&
+            word.id != null &&
+            word.id == selectedWordId;
         final basePrimary = theme.colorScheme.primary;
         final gradientColors = isSelected
             ? [
@@ -80,9 +81,7 @@ class WordCardsList extends StatelessWidget {
                   end: Alignment.bottomRight,
                   colors: gradientColors,
                 ),
-                border: Border.all(
-                  color: borderColor,
-                ),
+                border: Border.all(color: borderColor),
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(

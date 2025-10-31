@@ -45,9 +45,7 @@ class PackagesScreen extends ConsumerWidget {
         final packageId = package.id;
         if (packageId == null) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Package is missing an identifier.'),
-            ),
+            const SnackBar(content: Text('Package is missing an identifier.')),
           );
           return;
         }

@@ -43,9 +43,8 @@ class _UnscrambledSentencesGameScreenState
     final wordsAsync = ref.watch(packageWordsProvider(widget.packageId));
 
     return wordsAsync.when(
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (error, _) => Scaffold(
         body: Center(
           child: Padding(
@@ -104,9 +103,7 @@ class _UnscrambledSentencesGameScreenState
 
         final word = activeWord;
 
-        final sentencesAsync = ref.watch(
-          wordSentencesProvider(widget.wordId),
-        );
+        final sentencesAsync = ref.watch(wordSentencesProvider(widget.wordId));
 
         return Scaffold(
           appBar: AppBar(
@@ -118,16 +115,11 @@ class _UnscrambledSentencesGameScreenState
           body: Padding(
             padding: const EdgeInsets.all(16),
             child: sentencesAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(),
-              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, _) => _buildErrorState(theme, error.toString()),
               data: (sentences) {
                 if (sentences.isEmpty) {
-                  return _buildEmptyState(
-                    theme,
-                    wordLabel: word.text,
-                  );
+                  return _buildEmptyState(theme, wordLabel: word.text);
                 }
 
                 final signature = _buildSignature(widget.wordId, sentences);
@@ -146,18 +138,11 @@ class _UnscrambledSentencesGameScreenState
                 }
 
                 if (_rounds.isEmpty) {
-                  return _buildEmptyState(
-                    theme,
-                    wordLabel: word.text,
-                  );
+                  return _buildEmptyState(theme, wordLabel: word.text);
                 }
 
                 final round = _rounds[_currentRoundIndex];
-                return _buildGameView(
-                  theme,
-                  round,
-                  word.text,
-                );
+                return _buildGameView(theme, round, word.text);
               },
             ),
           ),
@@ -181,8 +166,9 @@ class _UnscrambledSentencesGameScreenState
           const SizedBox(height: 8),
           Text(
             message,
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: theme.colorScheme.error),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.error,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -208,15 +194,13 @@ class _UnscrambledSentencesGameScreenState
             color: theme.colorScheme.primary,
           ),
           const SizedBox(height: 12),
-          Text(
-            title,
-            style: theme.textTheme.titleMedium,
-          ),
+          Text(title, style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
             subtitle,
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -230,10 +214,12 @@ class _UnscrambledSentencesGameScreenState
     String wordLabel,
   ) {
     final totalRounds = _rounds.length;
-    final completedRounds =
-        _rounds.where((element) => element.isCompleted).length;
-    final progressValue =
-        totalRounds == 0 ? 0.0 : completedRounds / totalRounds;
+    final completedRounds = _rounds
+        .where((element) => element.isCompleted)
+        .length;
+    final progressValue = totalRounds == 0
+        ? 0.0
+        : completedRounds / totalRounds;
     final attemptsLeft = max(0, 3 - round.attempts);
 
     return Column(
@@ -251,15 +237,17 @@ class _UnscrambledSentencesGameScreenState
             Chip(
               label: Text('Sentence ${_currentRoundIndex + 1} / $totalRounds'),
               backgroundColor: theme.colorScheme.primary.withOpacity(0.12),
-              labelStyle: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.primary),
+              labelStyle: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.primary,
+              ),
             ),
             const SizedBox(width: 12),
             Chip(
               label: Text('Score $_score / $totalRounds'),
               backgroundColor: theme.colorScheme.secondary.withOpacity(0.12),
-              labelStyle: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.secondary),
+              labelStyle: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.secondary,
+              ),
             ),
             const Spacer(),
             Text(
@@ -330,16 +318,18 @@ class _UnscrambledSentencesGameScreenState
               children: [
                 Text(
                   'Arrange the words to form a meaningful sentence.',
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w600),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 _buildSelectedSentence(theme, round),
                 const SizedBox(height: 24),
                 Text(
                   'Word bank',
-                  style: theme.textTheme.titleSmall
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 _buildWordBank(theme, round),
@@ -369,8 +359,9 @@ class _UnscrambledSentencesGameScreenState
         ),
         child: Text(
           'Tap words below to build the sentence.',
-          style: theme.textTheme.bodyMedium
-              ?.copyWith(color: theme.colorScheme.primary),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.primary,
+          ),
         ),
       );
     }
@@ -417,17 +408,16 @@ class _UnscrambledSentencesGameScreenState
         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: theme.colorScheme.outlineVariant,
-          ),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
           color: theme.colorScheme.surfaceVariant.withOpacity(0.2),
         ),
         child: Text(
           round.isCompleted
               ? 'Sentence completed! Moving on...'
               : 'All words are in use.',
-          style: theme.textTheme.bodyMedium
-              ?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurface.withOpacity(0.7),
+          ),
           textAlign: TextAlign.center,
         ),
       );
@@ -451,10 +441,12 @@ class _UnscrambledSentencesGameScreenState
                     ? null
                     : () => _selectToken(round, token),
                 labelStyle: theme.textTheme.bodyMedium,
-                backgroundColor:
-                    theme.colorScheme.surfaceVariant.withOpacity(0.6),
-                disabledColor:
-                    theme.colorScheme.surfaceVariant.withOpacity(0.6),
+                backgroundColor: theme.colorScheme.surfaceVariant.withOpacity(
+                  0.6,
+                ),
+                disabledColor: theme.colorScheme.surfaceVariant.withOpacity(
+                  0.6,
+                ),
               ),
             )
             .toList(),
@@ -477,13 +469,14 @@ class _UnscrambledSentencesGameScreenState
     return Row(
       children: [
         OutlinedButton.icon(
-          onPressed:
-              round.isCompleted || round.selectedTokens.isEmpty ? null : () {
-                setState(() {
-                  round.resetSelection();
-                  _feedbackMessage = null;
-                });
-              },
+          onPressed: round.isCompleted || round.selectedTokens.isEmpty
+              ? null
+              : () {
+                  setState(() {
+                    round.resetSelection();
+                    _feedbackMessage = null;
+                  });
+                },
           icon: const Icon(Icons.refresh),
           label: const Text('Reset'),
         ),
@@ -542,9 +535,8 @@ class _UnscrambledSentencesGameScreenState
               ),
               const SizedBox(height: 12),
               TextButton.icon(
-                onPressed: () => context.go(
-                  '/unscrambledSentences/${widget.packageId}',
-                ),
+                onPressed: () =>
+                    context.go('/unscrambledSentences/${widget.packageId}'),
                 icon: const Icon(Icons.arrow_back),
                 label: const Text('Choose another word'),
               ),
@@ -560,11 +552,7 @@ class _UnscrambledSentencesGameScreenState
     _signature = signature;
     _rounds
       ..clear()
-      ..addAll(
-        [
-          for (final sentence in sentences) _createRound(sentence),
-        ],
-      );
+      ..addAll([for (final sentence in sentences) _createRound(sentence)]);
     _currentRoundIndex = 0;
     _score = 0;
     _feedbackMessage = null;
@@ -746,9 +734,9 @@ class _SentenceRound {
     required this.sentence,
     required this.correctOrder,
     required List<_WordPiece> shuffledTokens,
-  })  : shuffledTokens = List.unmodifiable(shuffledTokens),
-        availableTokens = [...shuffledTokens],
-        selectedTokens = [];
+  }) : shuffledTokens = List.unmodifiable(shuffledTokens),
+       availableTokens = [...shuffledTokens],
+       selectedTokens = [];
 
   final SentenceEntity sentence;
   final List<_WordPiece> correctOrder;

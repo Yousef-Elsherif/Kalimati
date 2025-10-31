@@ -8,14 +8,7 @@ import 'entities/definition_entity.dart';
 import 'entities/sentence_entity.dart';
 import 'entities/resource_entity.dart';
 
-/// Service to seed the database from JSON files in assets/data
 class DatabaseSeederService {
-  /// Seeder utilities. Prefer using `seedDatabaseWith(AppDatabase)` so callers
-  /// (such as the database provider) can seed the already-open database instance
-  /// and avoid creating an extra DB connection.
-
-  /// Seed using an existing [AppDatabase] instance. This lets callers (e.g. the provider)
-  /// build/open the DB and then run seeding without double-building.
   static Future<bool> seedDatabaseWith(AppDatabase database) async {
     // Check if already seeded
     final existingUsers = await database.userDao.findAllUsers();

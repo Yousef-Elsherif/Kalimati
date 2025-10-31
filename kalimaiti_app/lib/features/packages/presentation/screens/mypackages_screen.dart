@@ -44,9 +44,7 @@ class MyPackagesScreen extends ConsumerWidget {
     }
 
     if (user == null) {
-      return const Center(
-        child: Text('Please log in to view your packages.'),
-      );
+      return const Center(child: Text('Please log in to view your packages.'));
     }
 
     final myPackages = packagesState.packages
@@ -87,9 +85,7 @@ class MyPackagesScreen extends ConsumerWidget {
               ),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.red,
-                ),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
                 child: const Text('Delete'),
               ),
             ],
@@ -100,19 +96,15 @@ class MyPackagesScreen extends ConsumerWidget {
           await ref
               .read(packagesNotifierProvider.notifier)
               .deletePackage(package);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('"${package.title}" deleted'),
-            ),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('"${package.title}" deleted')));
         }
       },
       onPackageSelected: (PackageEntity package) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Selected: ${package.title}'),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Selected: ${package.title}')));
       },
     );
   }

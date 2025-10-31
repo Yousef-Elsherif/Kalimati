@@ -5,7 +5,6 @@ import '../../../../core/data/database/entities/sentence_entity.dart';
 import '../../../../core/data/database/entities/word_entity.dart';
 import '../widgets/package_form.dart';
 
-/// Insert the provided word hierarchy for the given package id.
 Future<void> insertPackageWordHierarchy(
   AppDatabase db,
   int packageId,
@@ -28,10 +27,7 @@ Future<void> insertPackageWordHierarchy(
 
     for (final sentence in word.sentences) {
       final sentenceId = await db.sentenceDao.insertSentence(
-        SentenceEntity(
-          wordId: wordId,
-          text: sentence.text,
-        ),
+        SentenceEntity(wordId: wordId, text: sentence.text),
       );
 
       for (final source in sentence.sources) {
@@ -48,7 +44,6 @@ Future<void> insertPackageWordHierarchy(
   }
 }
 
-/// Replace existing words and nested resources for a package.
 Future<void> replacePackageWordHierarchy(
   AppDatabase db,
   int packageId,
@@ -58,10 +53,7 @@ Future<void> replacePackageWordHierarchy(
   await insertPackageWordHierarchy(db, packageId, words);
 }
 
-Future<void> deletePackageWordHierarchy(
-  AppDatabase db,
-  int packageId,
-) async {
+Future<void> deletePackageWordHierarchy(AppDatabase db, int packageId) async {
   await _clearExistingHierarchy(db, packageId);
 }
 

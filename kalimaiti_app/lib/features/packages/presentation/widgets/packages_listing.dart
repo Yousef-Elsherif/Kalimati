@@ -69,8 +69,9 @@ class _PackagesListingState extends ConsumerState<PackagesListing> {
     final users = await db.userDao.findAllUsers();
     return {
       for (final UserEntity user in users)
-        user.email.toLowerCase():
-            ('${user.firstName} ${user.lastName}').trim().replaceAll(RegExp(r'\s+'), ' '),
+        user.email.toLowerCase(): ('${user.firstName} ${user.lastName}')
+            .trim()
+            .replaceAll(RegExp(r'\s+'), ' '),
     };
   }
 
@@ -87,497 +88,504 @@ class _PackagesListingState extends ConsumerState<PackagesListing> {
 
         return Column(
           children: [
-        Container(
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Search TextField
-              TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                  prefixIcon: Icon(
-                    Icons.search,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  hintText: 'Search packages...',
-                  hintStyle: TextStyle(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withOpacity(0.5),
-                  ),
-                  suffixIcon: _searchController.text.isEmpty
-                      ? null
-                      : IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            setState(() {
-                              _searchController.clear();
-                            });
-                          },
-                        ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 2,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                ),
-                onChanged: (_) => setState(() {}),
-              ),
-              const SizedBox(height: 12),
-              // Filter Section
-              Row(
-                children: [
-                  Icon(
-                    Icons.filter_list,
-                    size: 20,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withOpacity(0.6),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Level:',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withOpacity(0.7),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: _levels.map((level) {
-                          final isSelected = _selectedLevel == level;
-                          final levelColor = _getLevelFilterColor(level);
-
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: FilterChip(
-                              label: Text(level),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                setState(() {
-                                  _selectedLevel = level;
-                                });
-                              },
-                              backgroundColor: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceContainerHighest
-                                  .withOpacity(0.3),
-                              selectedColor: levelColor,
-                              checkmarkColor: Colors.white,
-                              labelStyle: TextStyle(
-                                color: isSelected
-                                    ? Colors.white
-                                    : Theme.of(
-                                        context,
-                                      ).colorScheme.onSurface,
-                                fontWeight: isSelected
-                                    ? FontWeight.w600
-                                    : FontWeight.normal,
-                              ),
-                              side: BorderSide(
-                                color: isSelected
-                                    ? levelColor
-                                    : Colors.transparent,
-                                width: 1,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ),
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: Builder(
-            builder: (context) {
-              final filtered =
-                  widget.packages.where(_matchesFilter).toList();
-
-              if (filtered.isEmpty) {
-                return const Center(
-                  child: Text('No packages match your search/filter.'),
-                );
-              }
-
-              return ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: filtered.length,
-                itemBuilder: (context, index) {
-                  final package = filtered[index];
-                  final cardColor = _getCardColor(package.level);
-
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [cardColor, cardColor.withOpacity(0.8)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: cardColor.withOpacity(0.3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
+                      hintText: 'Search packages...',
+                      hintStyle: TextStyle(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.5),
+                      ),
+                      suffixIcon: _searchController.text.isEmpty
+                          ? null
+                          : IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                setState(() {
+                                  _searchController.clear();
+                                });
+                              },
+                            ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 2,
                         ),
-                      ],
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            if (widget.onPackageSelected != null) {
-                              widget.onPackageSelected!(package);
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Selected: ${package.title}',
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.filter_list,
+                        size: 20,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Level:',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withOpacity(0.7),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: _levels.map((level) {
+                              final isSelected = _selectedLevel == level;
+                              final levelColor = _getLevelFilterColor(level);
+
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: FilterChip(
+                                  label: Text(level),
+                                  selected: isSelected,
+                                  onSelected: (selected) {
+                                    setState(() {
+                                      _selectedLevel = level;
+                                    });
+                                  },
+                                  backgroundColor: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHighest
+                                      .withOpacity(0.3),
+                                  selectedColor: levelColor,
+                                  checkmarkColor: Colors.white,
+                                  labelStyle: TextStyle(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Theme.of(
+                                            context,
+                                          ).colorScheme.onSurface,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                                  ),
+                                  side: BorderSide(
+                                    color: isSelected
+                                        ? levelColor
+                                        : Colors.transparent,
+                                    width: 1,
                                   ),
                                 ),
                               );
-                            }
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Header with title and level badge
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        package.title,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.3),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        package.level,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  package.category,
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.9),
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-
-                                // Instructor info
-                                Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 24,
-                                      backgroundColor: Colors.white,
-                                      backgroundImage:
-                                          package.iconUrl.isNotEmpty
-                                              ? NetworkImage(package.iconUrl)
-                                              : null,
-                                      child: package.iconUrl.isEmpty
-                                          ? Icon(
-                                              Icons.person,
-                                              color: cardColor,
-                                            )
-                                          : null,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            authorNames[package.author
-                                                    .toLowerCase()] ??
-                                                package.author,
-                                            style: TextStyle(
-                                              color: Colors.white
-                                                  .withOpacity(0.95),
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Row(
-                                            children: [
-                                              Text(
-                                                'Available Now',
-                                                style: TextStyle(
-                                                  color: Colors.white
-                                                      .withOpacity(0.85),
-                                                  fontSize: 13,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  horizontal: 8,
-                                                  vertical: 2,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white
-                                                      .withOpacity(0.3),
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                ),
-                                                child: Text(
-                                                  package.language,
-                                                  style: TextStyle(
-                                                    color: Colors.white
-                                                        .withOpacity(0.95),
-                                                    fontSize: 11,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 20),
-
-                                // Action button(s)
-                                widget.showOwnerActions
-                                    ? Row(
-                                        children: [
-                                          Expanded(
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                if (widget.onEditPackage !=
-                                                    null) {
-                                                  widget.onEditPackage!(
-                                                    package,
-                                                  );
-                                                } else {
-                                                  ScaffoldMessenger.of(
-                                                    context,
-                                                  ).showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                        'Edit ${package.title}',
-                                                      ),
-                                                    ),
-                                                  );
-                                                }
-                                              },
-                                              child: Container(
-                                                height: 48,
-                                                decoration: BoxDecoration(
-                                                  gradient: LinearGradient(
-                                                    colors: [
-                                                      const Color.fromARGB(
-                                                        255,
-                                                        193,
-                                                        191,
-                                                        191,
-                                                      ).withOpacity(0.95),
-                                                      const Color.fromARGB(
-                                                        255,
-                                                        255,
-                                                        255,
-                                                        255,
-                                                      ).withOpacity(0.85),
-                                                    ],
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.black
-                                                          .withOpacity(0.3),
-                                                      blurRadius: 8,
-                                                      offset:
-                                                          const Offset(0, 4),
-                                                    ),
-                                                  ],
-                                                ),
-                                                alignment: Alignment.center,
-                                                child: const Text(
-                                                  'Edit',
-                                                  style: TextStyle(
-                                                    color: Colors.black,
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w600,
-                                                    letterSpacing: 0.5,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor:
-                                                    Colors.red.shade400,
-                                                foregroundColor: Colors.white,
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                                minimumSize:
-                                                    const Size.fromHeight(48),
-                                                padding: EdgeInsets.zero,
-                                              ),
-                                              onPressed: () {
-                                                if (widget.onDeletePackage !=
-                                                    null) {
-                                                  widget.onDeletePackage!(
-                                                    package,
-                                                  );
-                                                } else {
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                        'Delete ${package.title}',
-                                                      ),
-                                                    ),
-                                                  );
-                                                }
-                                              },
-                                              child: const Padding(
-                                                padding: EdgeInsets.zero,
-                                                child: Text(
-                                                  'Delete',
-                                                  style: TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w600,
-                                                    letterSpacing: 0.5,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      )
-                                    : Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 16,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            colors: [
-                                              const Color.fromARGB(
-                                                255,
-                                                193,
-                                                191,
-                                                191,
-                                              ).withOpacity(0.95),
-                                              const Color.fromARGB(
-                                                255,
-                                                255,
-                                                255,
-                                                255,
-                                              ).withOpacity(0.85),
-                                            ],
-                                          ),
-                                          borderRadius:
-                                              BorderRadius.circular(16),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black
-                                                  .withOpacity(0.3),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 4),
-                                            ),
-                                          ],
-                                        ),
-                                        child: const Text(
-                                          'Start Learning',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            letterSpacing: 0.5,
-                                          ),
-                                        ),
-                                      ),
-                              ],
-                            ),
+                            }).toList(),
                           ),
                         ),
                       ),
-                    ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Builder(
+                builder: (context) {
+                  final filtered = widget.packages
+                      .where(_matchesFilter)
+                      .toList();
+
+                  if (filtered.isEmpty) {
+                    return const Center(
+                      child: Text('No packages match your search/filter.'),
+                    );
+                  }
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final package = filtered[index];
+                      final cardColor = _getCardColor(package.level);
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [cardColor, cardColor.withOpacity(0.8)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: cardColor.withOpacity(0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                if (widget.onPackageSelected != null) {
+                                  widget.onPackageSelected!(package);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Selected: ${package.title}',
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            package.title,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 6,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withOpacity(
+                                              0.3,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            package.level,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      package.category,
+                                      style: TextStyle(
+                                        color: Colors.white.withOpacity(0.9),
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+
+                                    // Instructor info
+                                    Row(
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 24,
+                                          backgroundColor: Colors.white,
+                                          backgroundImage:
+                                              package.iconUrl.isNotEmpty
+                                              ? NetworkImage(package.iconUrl)
+                                              : null,
+                                          child: package.iconUrl.isEmpty
+                                              ? Icon(
+                                                  Icons.person,
+                                                  color: cardColor,
+                                                )
+                                              : null,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                authorNames[package.author
+                                                        .toLowerCase()] ??
+                                                    package.author,
+                                                style: TextStyle(
+                                                  color: Colors.white
+                                                      .withOpacity(0.95),
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Row(
+                                                children: [
+                                                  Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 8,
+                                                          vertical: 3,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white
+                                                          .withOpacity(0.3),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            8,
+                                                          ),
+                                                    ),
+                                                    child: Text(
+                                                      package.language,
+                                                      style: TextStyle(
+                                                        color: Colors.white
+                                                            .withOpacity(0.95),
+                                                        fontSize: 11,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 20),
+
+                                    widget.showOwnerActions
+                                        ? Row(
+                                            children: [
+                                              Expanded(
+                                                child: GestureDetector(
+                                                  onTap: () {
+                                                    if (widget.onEditPackage !=
+                                                        null) {
+                                                      widget.onEditPackage!(
+                                                        package,
+                                                      );
+                                                    } else {
+                                                      ScaffoldMessenger.of(
+                                                        context,
+                                                      ).showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(
+                                                            'Edit ${package.title}',
+                                                          ),
+                                                        ),
+                                                      );
+                                                    }
+                                                  },
+                                                  child: Container(
+                                                    height: 48,
+                                                    decoration: BoxDecoration(
+                                                      gradient: LinearGradient(
+                                                        colors: [
+                                                          const Color.fromARGB(
+                                                            255,
+                                                            193,
+                                                            191,
+                                                            191,
+                                                          ).withOpacity(0.95),
+                                                          const Color.fromARGB(
+                                                            255,
+                                                            255,
+                                                            255,
+                                                            255,
+                                                          ).withOpacity(0.85),
+                                                        ],
+                                                      ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            12,
+                                                          ),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Colors.black
+                                                              .withOpacity(0.3),
+                                                          blurRadius: 8,
+                                                          offset: const Offset(
+                                                            0,
+                                                            4,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    alignment: Alignment.center,
+                                                    child: const Text(
+                                                      'Edit',
+                                                      style: TextStyle(
+                                                        color: Colors.black,
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        letterSpacing: 0.5,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Expanded(
+                                                child: ElevatedButton(
+                                                  style: ElevatedButton.styleFrom(
+                                                    backgroundColor:
+                                                        Colors.red.shade400,
+                                                    foregroundColor:
+                                                        Colors.white,
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            12,
+                                                          ),
+                                                    ),
+                                                    minimumSize:
+                                                        const Size.fromHeight(
+                                                          48,
+                                                        ),
+                                                    padding: EdgeInsets.zero,
+                                                  ),
+                                                  onPressed: () {
+                                                    if (widget
+                                                            .onDeletePackage !=
+                                                        null) {
+                                                      widget.onDeletePackage!(
+                                                        package,
+                                                      );
+                                                    } else {
+                                                      ScaffoldMessenger.of(
+                                                        context,
+                                                      ).showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(
+                                                            'Delete ${package.title}',
+                                                          ),
+                                                        ),
+                                                      );
+                                                    }
+                                                  },
+                                                  child: const Padding(
+                                                    padding: EdgeInsets.zero,
+                                                    child: Text(
+                                                      'Delete',
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        letterSpacing: 0.5,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                        : Container(
+                                            width: double.infinity,
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 16,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  const Color.fromARGB(
+                                                    255,
+                                                    193,
+                                                    191,
+                                                    191,
+                                                  ).withOpacity(0.95),
+                                                  const Color.fromARGB(
+                                                    255,
+                                                    255,
+                                                    255,
+                                                    255,
+                                                  ).withOpacity(0.85),
+                                                ],
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black
+                                                      .withOpacity(0.3),
+                                                  blurRadius: 8,
+                                                  offset: const Offset(0, 4),
+                                                ),
+                                              ],
+                                            ),
+                                            child: const Text(
+                                              'Start Learning',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w600,
+                                                letterSpacing: 0.5,
+                                              ),
+                                            ),
+                                          ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   );
                 },
-              );
-            },
-          ),
-        ),
-      ],
+              ),
+            ),
+          ],
         );
       },
     );

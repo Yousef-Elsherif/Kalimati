@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod/riverpod.dart';
 import 'package:kalimaiti_app/core/data/database/entities/user_entity.dart';
 import '../../domain/contracts/auth_repository.dart';
 import 'auth_repo_provider.dart';
@@ -70,40 +69,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       await _repository.signOut();
-      state = AuthState(); // Reset to initial state
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
-      rethrow;
-    }
-  }
-
-  Future<void> updateProfile(UserEntity user) async {
-    state = state.copyWith(isLoading: true, error: null);
-    try {
-      await _repository.updateProfile(user);
-      state = state.copyWith(user: user, isLoading: false);
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
-      rethrow;
-    }
-  }
-
-  Future<void> changePassword(String oldPassword, String newPassword) async {
-    state = state.copyWith(isLoading: true, error: null);
-    try {
-      await _repository.changePassword(oldPassword, newPassword);
-      state = state.copyWith(isLoading: false);
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
-      rethrow;
-    }
-  }
-
-  Future<void> resetPassword(String email) async {
-    state = state.copyWith(isLoading: true, error: null);
-    try {
-      await _repository.resetPassword(email);
-      state = state.copyWith(isLoading: false);
+      state = AuthState();
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
       rethrow;
@@ -122,7 +88,6 @@ final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((
   );
 });
 
-// Temporary placeholder repository for loading state
 class _LoadingRepository implements AuthRepository {
   @override
   Future<UserEntity?> signIn(String email, String password) async => null;
@@ -135,13 +100,4 @@ class _LoadingRepository implements AuthRepository {
 
   @override
   Future<bool> isLoggedIn() async => false;
-
-  @override
-  Future<void> updateProfile(UserEntity user) async {}
-
-  @override
-  Future<void> changePassword(String oldPassword, String newPassword) async {}
-
-  @override
-  Future<void> resetPassword(String email) async {}
 }

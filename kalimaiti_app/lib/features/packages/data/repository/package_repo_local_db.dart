@@ -7,27 +7,27 @@ class PackageRepoLocalDb implements PackageRepository {
   PackageRepoLocalDb(this._packageDao);
 
   @override
-  Future<List<PackageEntity>> getAllPackages()  {
+  Future<List<PackageEntity>> getAllPackages() {
     return _packageDao.findAllPackages();
   }
 
   @override
-  Future<PackageEntity?> getPackageById(int id)  {
+  Future<PackageEntity?> getPackageById(int id) {
     return _packageDao.findById(id);
   }
 
   @override
-  Future<List<PackageEntity>> getPackagesByCategory(String category)  {
+  Future<List<PackageEntity>> getPackagesByCategory(String category) {
     return _packageDao.findByCategory(category);
   }
 
   @override
-  Future<List<PackageEntity>> getPackagesByLevel(String level)  {
+  Future<List<PackageEntity>> getPackagesByLevel(String level) {
     return _packageDao.findByLevel(level);
   }
 
   @override
-  Future<int> addPackage(PackageEntity package)  {
+  Future<int> addPackage(PackageEntity package) {
     return _packageDao.insertPackage(package);
   }
 
@@ -37,7 +37,7 @@ class PackageRepoLocalDb implements PackageRepository {
   }
 
   @override
-  Future<void> deletePackage(PackageEntity package)  {
+  Future<void> deletePackage(PackageEntity package) {
     return _packageDao.deletePackage(package);
   }
 }

@@ -4,8 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app_database.dart';
 import 'database_seeder.dart';
 
-/// Open (or create) the Floor database and run the seeder once.
-/// Returns a ready-to-use [AppDatabase].
+
 AppDatabase? _appDatabase;
 
 final _migration1to2 = Migration(1, 2, (database) async {
@@ -46,13 +45,11 @@ Future<AppDatabase> openAndSeedDatabase() async {
       .addMigrations([_migration1to2])
       .addCallback(openCallback)
       .build();
-  // Run seeding using the existing DB instance. This is idempotent.
   await DatabaseSeederService.seedDatabaseWith(db);
   _appDatabase = db;
   return _appDatabase!;
 }
 
 final databaseProvider = FutureProvider<AppDatabase>((ref) async {
-  // Return already-opened DB if present, otherwise open and seed.
   return _appDatabase ??= await openAndSeedDatabase();
 });

@@ -53,8 +53,7 @@ class UnscrambledSentencesScreen extends ConsumerWidget {
                         'Add words to this package to unlock the unscrambling game.',
                         textAlign: TextAlign.center,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color:
-                              theme.colorScheme.onSurface.withOpacity(0.7),
+                          color: theme.colorScheme.onSurface.withOpacity(0.7),
                         ),
                       ),
                     ],
@@ -76,7 +75,9 @@ class UnscrambledSentencesScreen extends ConsumerWidget {
                   Text(
                     'Tap a word to practice building its sentences.',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                      color: theme.textTheme.bodyMedium?.color?.withOpacity(
+                        0.7,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),

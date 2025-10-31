@@ -55,16 +55,14 @@ class _AddPackageScreenState extends ConsumerState<AddPackageScreen> {
       context.go('/myPackages');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to add package: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to add package: $e')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return PackageForm(
-      onSubmit: _handleSubmit,
-    );
+    return PackageForm(onSubmit: _handleSubmit);
   }
 }

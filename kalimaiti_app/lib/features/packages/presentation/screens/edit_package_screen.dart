@@ -79,10 +79,7 @@ class _EditPackageScreenState extends ConsumerState<EditPackageScreen> {
               .toList();
 
           sentenceData.add(
-            PackageFormSentenceData(
-              text: sentence.text,
-              sources: sourceData,
-            ),
+            PackageFormSentenceData(text: sentence.text, sources: sourceData),
           );
         }
 
@@ -134,25 +131,21 @@ class _EditPackageScreenState extends ConsumerState<EditPackageScreen> {
       context.pop();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update package: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to update package: $e')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Edit Package'),
-        ),
+        appBar: AppBar(title: const Text('Edit Package')),
         body: Center(child: Text(_error!)),
       );
     }
@@ -190,9 +183,7 @@ class _EditPackageScreenState extends ConsumerState<EditPackageScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Package'),
-        content: Text(
-          'Are you sure you want to delete "${package.title}"?',
-        ),
+        content: Text('Are you sure you want to delete "${package.title}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -214,9 +205,9 @@ class _EditPackageScreenState extends ConsumerState<EditPackageScreen> {
     await ref.read(packagesNotifierProvider.notifier).deletePackage(package);
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('"${package.title}" deleted')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('"${package.title}" deleted')));
     context.pop();
   }
 }

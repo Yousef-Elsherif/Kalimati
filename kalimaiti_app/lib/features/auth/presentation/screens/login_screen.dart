@@ -68,7 +68,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           );
 
       if (mounted) {
-        // Navigate to learning packages screen after successful login
         context.go('/learningPackages');
       }
     } catch (e) {
@@ -95,7 +94,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     return Scaffold(
       body: Stack(
         children: [
-          // Fixed Purple Background
           Container(
             width: size.width,
             height: size.height,
@@ -111,13 +109,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               ),
             ),
           ),
-
-          // Content with logo and scrollable white card
           SafeArea(
             bottom: false,
             child: Column(
               children: [
-                // Back button and logo section
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16.0,
@@ -136,7 +131,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     ],
                   ),
                 ),
-                // Logo and Title - Fixed at top
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: Column(
@@ -189,8 +183,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     ],
                   ),
                 ),
-
-                // White Card - Scrollable and extends to bottom
                 Expanded(
                   child: SlideTransition(
                     position: _slideAnimation,
@@ -243,8 +235,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                         textAlign: TextAlign.center,
                                       ),
                                       const SizedBox(height: 32),
-
-                                      // Email Field
                                       TextFormField(
                                         controller: _emailController,
                                         keyboardType:
@@ -291,8 +281,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                         },
                                       ),
                                       const SizedBox(height: 20),
-
-                                      // Password Field
                                       TextFormField(
                                         controller: _passwordController,
                                         obscureText: _obscurePassword,
@@ -352,8 +340,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                         },
                                       ),
                                       const SizedBox(height: 24),
-
-                                      // Login Button
                                       Container(
                                         height: 54,
                                         decoration: BoxDecoration(

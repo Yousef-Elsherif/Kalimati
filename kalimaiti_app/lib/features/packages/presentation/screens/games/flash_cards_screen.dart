@@ -23,7 +23,6 @@ class FlashCardsScreen extends ConsumerWidget {
             if (words.isEmpty) {
               return _buildEmpty(theme);
             }
-
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -51,17 +50,18 @@ class FlashCardsScreen extends ConsumerWidget {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content:
-                                  Text('Definition unavailable for this word.'),
+                              content: Text(
+                                'Definition unavailable for this word.',
+                              ),
                             ),
                           );
                         }
                         return;
                       }
 
-                      final pairs = await ref
-                          .read(packageWordDefinitionPairsProvider(packageId)
-                              .future);
+                      final pairs = await ref.read(
+                        packageWordDefinitionPairsProvider(packageId).future,
+                      );
                       WordDefinitionPair? pair;
                       try {
                         pair = pairs.firstWhere((p) => p.word.id == wordId);
@@ -74,8 +74,9 @@ class FlashCardsScreen extends ConsumerWidget {
                       if (pair == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content:
-                                Text('No definitions available for this word.'),
+                            content: Text(
+                              'No definitions available for this word.',
+                            ),
                           ),
                         );
                         return;
@@ -103,9 +104,8 @@ class FlashCardsScreen extends ConsumerWidget {
                               children: [
                                 Text(
                                   word.text,
-                                  style: theme.textTheme.headlineSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: theme.textTheme.headlineSmall
+                                      ?.copyWith(fontWeight: FontWeight.bold),
                                 ),
                                 const SizedBox(height: 12),
                                 Text(
@@ -127,8 +127,8 @@ class FlashCardsScreen extends ConsumerWidget {
                                 Align(
                                   alignment: Alignment.centerRight,
                                   child: TextButton(
-                                    onPressed: () => Navigator.of(sheetContext)
-                                        .maybePop(),
+                                    onPressed: () =>
+                                        Navigator.of(sheetContext).maybePop(),
                                     child: const Text('Close'),
                                   ),
                                 ),
@@ -163,8 +163,9 @@ class FlashCardsScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(
             message,
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: theme.colorScheme.error),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.error,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -183,15 +184,13 @@ class FlashCardsScreen extends ConsumerWidget {
             color: theme.colorScheme.primary,
           ),
           const SizedBox(height: 12),
-          Text(
-            'No words available yet',
-            style: theme.textTheme.titleMedium,
-          ),
+          Text('No words available yet', style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
             'Add words to this package to review them as flash cards.',
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+            ),
             textAlign: TextAlign.center,
           ),
         ],

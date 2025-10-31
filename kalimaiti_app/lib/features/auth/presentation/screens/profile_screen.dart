@@ -34,9 +34,7 @@ class ProfileScreen extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-      ),
+      appBar: AppBar(title: const Text('Profile')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -114,9 +112,7 @@ class ProfileScreen extends ConsumerWidget {
                       );
 
                       if (confirm == true) {
-                        await ref
-                            .read(authNotifierProvider.notifier)
-                            .signOut();
+                        await ref.read(authNotifierProvider.notifier).signOut();
                         if (context.mounted) {
                           context.go('/learningPackages');
                         }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/data/database/entities/package_entity.dart';
 
-/// Captures the data from the package form when submitted.
 class PackageFormResult {
   PackageFormResult({
     required this.title,
@@ -36,20 +35,14 @@ class PackageFormWordSubmission {
 }
 
 class PackageFormDefinitionSubmission {
-  PackageFormDefinitionSubmission({
-    required this.text,
-    required this.source,
-  });
+  PackageFormDefinitionSubmission({required this.text, required this.source});
 
   final String text;
   final String source;
 }
 
 class PackageFormSentenceSubmission {
-  PackageFormSentenceSubmission({
-    required this.text,
-    required this.sources,
-  });
+  PackageFormSentenceSubmission({required this.text, required this.sources});
 
   final String text;
   final List<PackageFormSourceSubmission> sources;
@@ -67,7 +60,6 @@ class PackageFormSourceSubmission {
   final String type;
 }
 
-/// Initial data used to pre-populate the form when editing.
 class PackageFormWordData {
   const PackageFormWordData({
     required this.text,
@@ -81,20 +73,14 @@ class PackageFormWordData {
 }
 
 class PackageFormDefinitionData {
-  const PackageFormDefinitionData({
-    required this.text,
-    required this.source,
-  });
+  const PackageFormDefinitionData({required this.text, required this.source});
 
   final String text;
   final String source;
 }
 
 class PackageFormSentenceData {
-  const PackageFormSentenceData({
-    required this.text,
-    required this.sources,
-  });
+  const PackageFormSentenceData({required this.text, required this.sources});
 
   final String text;
   final List<PackageFormSourceData> sources;
@@ -112,7 +98,6 @@ class PackageFormSourceData {
   final String type;
 }
 
-/// Reusable package form widget for both add and edit flows.
 class PackageForm extends StatefulWidget {
   const PackageForm({
     this.initialPackage,
@@ -141,19 +126,16 @@ class _PackageFormState extends State<PackageForm> {
   late String _selectedLevel;
   bool _isSubmitting = false;
 
-  static const List<String> _levels = [
-    'Beginner',
-    'Intermediate',
-    'Advanced',
-  ];
+  static const List<String> _levels = ['Beginner', 'Intermediate', 'Advanced'];
 
   @override
   void initState() {
     super.initState();
     final initial = widget.initialPackage;
     _titleController = TextEditingController(text: initial?.title ?? '');
-    _descriptionController =
-        TextEditingController(text: initial?.description ?? '');
+    _descriptionController = TextEditingController(
+      text: initial?.description ?? '',
+    );
     _categoryController = TextEditingController(text: initial?.category ?? '');
     _languageController = TextEditingController(text: initial?.language ?? '');
     _iconUrlController = TextEditingController(text: initial?.iconUrl ?? '');
@@ -213,6 +195,7 @@ class _PackageFormState extends State<PackageForm> {
       ),
     );
   }
+
   Widget _buildHeader(ThemeData theme) {
     final isEditing = widget.initialPackage != null;
     return Column(
@@ -238,73 +221,73 @@ class _PackageFormState extends State<PackageForm> {
   }
 
   Widget _buildTitleField() => _buildTextField(
-        controller: _titleController,
-        label: 'Title',
-        hint: 'e.g. Introduction to Flutter',
-        validator: (value) {
-          if (value == null || value.trim().isEmpty) {
-            return 'Title is required';
-          }
-          return null;
-        },
-      );
+    controller: _titleController,
+    label: 'Title',
+    hint: 'e.g. Introduction to Flutter',
+    validator: (value) {
+      if (value == null || value.trim().isEmpty) {
+        return 'Title is required';
+      }
+      return null;
+    },
+  );
 
   Widget _buildDescriptionField() => _buildTextField(
-        controller: _descriptionController,
-        label: 'Description',
-        hint: 'Provide a concise overview of the package contents.',
-        maxLines: 4,
-        validator: (value) {
-          if (value == null || value.trim().length < 20) {
-            return 'Description should be at least 20 characters';
-          }
-          return null;
-        },
-      );
+    controller: _descriptionController,
+    label: 'Description',
+    hint: 'Provide a concise overview of the package contents.',
+    maxLines: 4,
+    validator: (value) {
+      if (value == null || value.trim().length < 20) {
+        return 'Description should be at least 20 characters';
+      }
+      return null;
+    },
+  );
 
   Widget _buildCategoryField() => _buildTextField(
-        controller: _categoryController,
-        label: 'Category',
-        hint: 'e.g. Mobile Development',
-        validator: (value) {
-          if (value == null || value.trim().isEmpty) {
-            return 'Category is required';
-          }
-          return null;
-        },
-      );
+    controller: _categoryController,
+    label: 'Category',
+    hint: 'e.g. Mobile Development',
+    validator: (value) {
+      if (value == null || value.trim().isEmpty) {
+        return 'Category is required';
+      }
+      return null;
+    },
+  );
 
   Widget _buildLevelField() => DropdownButtonFormField<String>(
-        value: _selectedLevel,
-        decoration: _inputDecoration('Difficulty Level'),
-        items: _levels
-            .map((level) => DropdownMenuItem(value: level, child: Text(level)))
-            .toList(),
-        onChanged: (value) {
-          if (value != null) {
-            setState(() => _selectedLevel = value);
-          }
-        },
-      );
+    value: _selectedLevel,
+    decoration: _inputDecoration('Difficulty Level'),
+    items: _levels
+        .map((level) => DropdownMenuItem(value: level, child: Text(level)))
+        .toList(),
+    onChanged: (value) {
+      if (value != null) {
+        setState(() => _selectedLevel = value);
+      }
+    },
+  );
 
   Widget _buildLanguageField() => _buildTextField(
-        controller: _languageController,
-        label: 'Language',
-        hint: 'e.g. English',
-        validator: (value) {
-          if (value == null || value.trim().isEmpty) {
-            return 'Language is required';
-          }
-          return null;
-        },
-      );
+    controller: _languageController,
+    label: 'Language',
+    hint: 'e.g. English',
+    validator: (value) {
+      if (value == null || value.trim().isEmpty) {
+        return 'Language is required';
+      }
+      return null;
+    },
+  );
 
   Widget _buildIconField() => _buildTextField(
-        controller: _iconUrlController,
-        label: 'Icon URL',
-        hint: 'Link to a representative image (optional)',
-        keyboardType: TextInputType.url,
-      );
+    controller: _iconUrlController,
+    label: 'Icon URL',
+    hint: 'Link to a representative image (optional)',
+    keyboardType: TextInputType.url,
+  );
 
   Widget _buildWordsSection(ThemeData theme) {
     return Column(
@@ -317,8 +300,9 @@ class _PackageFormState extends State<PackageForm> {
           ),
         ),
         const SizedBox(height: 12),
-        ..._words.asMap().entries
-            .map((entry) => _buildWordCard(entry.key, entry.value, theme)),
+        ..._words.asMap().entries.map(
+          (entry) => _buildWordCard(entry.key, entry.value, theme),
+        ),
         Align(
           alignment: Alignment.centerLeft,
           child: TextButton.icon(
@@ -341,10 +325,7 @@ class _PackageFormState extends State<PackageForm> {
           padding: const EdgeInsets.symmetric(vertical: 16),
           backgroundColor: theme.colorScheme.primary,
           foregroundColor: theme.colorScheme.onPrimary,
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         child: _isSubmitting
             ? const SizedBox(
@@ -363,9 +344,9 @@ class _PackageFormState extends State<PackageForm> {
 
     final validationError = _validateWordForms();
     if (validationError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(validationError)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(validationError)));
       return;
     }
 
@@ -389,7 +370,12 @@ class _PackageFormState extends State<PackageForm> {
       }
     }
   }
-  Widget _buildWordCard(int wordIndex, _WordFormState wordForm, ThemeData theme) {
+
+  Widget _buildWordCard(
+    int wordIndex,
+    _WordFormState wordForm,
+    ThemeData theme,
+  ) {
     final isRemovable = _words.length > 1;
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -418,7 +404,10 @@ class _PackageFormState extends State<PackageForm> {
             ),
             TextFormField(
               controller: wordForm.wordController,
-              decoration: _inputDecoration('Word', hint: 'e.g. Vocabulary term'),
+              decoration: _inputDecoration(
+                'Word',
+                hint: 'e.g. Vocabulary term',
+              ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'Word text is required';
@@ -489,7 +478,8 @@ class _PackageFormState extends State<PackageForm> {
                         padding: const EdgeInsets.only(left: 8),
                         child: IconButton(
                           tooltip: 'Remove definition',
-                          onPressed: () => _removeDefinition(wordIndex, entry.key),
+                          onPressed: () =>
+                              _removeDefinition(wordIndex, entry.key),
                           icon: const Icon(Icons.remove_circle_outline),
                         ),
                       ),
@@ -694,6 +684,7 @@ class _PackageFormState extends State<PackageForm> {
       ),
     );
   }
+
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -728,15 +719,9 @@ class _PackageFormState extends State<PackageForm> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(
-          color: theme.colorScheme.primary,
-          width: 2,
-        ),
+        borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
       ),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 14,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 
@@ -779,10 +764,11 @@ class _PackageFormState extends State<PackageForm> {
   }
 
   void _addSource(int wordIndex, int sentenceIndex) {
-    setState(() => _words[wordIndex]
-        .sentences[sentenceIndex]
-        .sources
-        .add(_SourceFormState()));
+    setState(
+      () => _words[wordIndex].sentences[sentenceIndex].sources.add(
+        _SourceFormState(),
+      ),
+    );
   }
 
   void _removeSource(int wordIndex, int sentenceIndex, int sourceIndex) {
@@ -823,9 +809,11 @@ class _PackageFormState extends State<PackageForm> {
         return 'Word ${wordIndex + 1} requires at least one sentence.';
       }
 
-      for (var sentenceIndex = 0;
-          sentenceIndex < word.sentences.length;
-          sentenceIndex++) {
+      for (
+        var sentenceIndex = 0;
+        sentenceIndex < word.sentences.length;
+        sentenceIndex++
+      ) {
         final sentence = word.sentences[sentenceIndex];
         if (sentence.textController.text.trim().isEmpty) {
           return 'Sentence ${sentenceIndex + 1} for word ${wordIndex + 1} requires text.';
@@ -835,9 +823,11 @@ class _PackageFormState extends State<PackageForm> {
           return 'Sentence ${sentenceIndex + 1} for word ${wordIndex + 1} requires at least one source.';
         }
 
-        for (var sourceIndex = 0;
-            sourceIndex < sentence.sources.length;
-            sourceIndex++) {
+        for (
+          var sourceIndex = 0;
+          sourceIndex < sentence.sources.length;
+          sourceIndex++
+        ) {
           final source = sentence.sources[sourceIndex];
           if (source.titleController.text.trim().isEmpty) {
             return 'Source ${sourceIndex + 1} for sentence ${sentenceIndex + 1} (word ${wordIndex + 1}) requires a title.';
@@ -891,6 +881,7 @@ class _PackageFormState extends State<PackageForm> {
     }).toList();
   }
 }
+
 class _WordFormState {
   _WordFormState({
     required this.wordController,
@@ -909,13 +900,13 @@ class _WordFormState {
   factory _WordFormState.fromInitial(PackageFormWordData data) {
     final definitions = data.definitions.isNotEmpty
         ? data.definitions
-            .map((definition) => _DefinitionFormState.fromInitial(definition))
-            .toList()
+              .map((definition) => _DefinitionFormState.fromInitial(definition))
+              .toList()
         : [_DefinitionFormState()];
     final sentences = data.sentences.isNotEmpty
         ? data.sentences
-            .map((sentence) => _SentenceFormState.fromInitial(sentence))
-            .toList()
+              .map((sentence) => _SentenceFormState.fromInitial(sentence))
+              .toList()
         : [_SentenceFormState()];
 
     return _WordFormState(
@@ -944,8 +935,8 @@ class _DefinitionFormState {
   _DefinitionFormState({
     TextEditingController? textController,
     TextEditingController? sourceController,
-  })  : textController = textController ?? TextEditingController(),
-        sourceController = sourceController ?? TextEditingController();
+  }) : textController = textController ?? TextEditingController(),
+       sourceController = sourceController ?? TextEditingController();
 
   factory _DefinitionFormState.fromInitial(PackageFormDefinitionData data) {
     return _DefinitionFormState(
@@ -967,14 +958,14 @@ class _SentenceFormState {
   _SentenceFormState({
     TextEditingController? textController,
     List<_SourceFormState>? sources,
-  })  : textController = textController ?? TextEditingController(),
-        sources = sources ?? [_SourceFormState()];
+  }) : textController = textController ?? TextEditingController(),
+       sources = sources ?? [_SourceFormState()];
 
   factory _SentenceFormState.fromInitial(PackageFormSentenceData data) {
     final sourceStates = data.sources.isNotEmpty
         ? data.sources
-            .map((source) => _SourceFormState.fromInitial(source))
-            .toList()
+              .map((source) => _SourceFormState.fromInitial(source))
+              .toList()
         : [_SourceFormState()];
 
     return _SentenceFormState(
@@ -999,9 +990,9 @@ class _SourceFormState {
     TextEditingController? titleController,
     TextEditingController? urlController,
     TextEditingController? typeController,
-  })  : titleController = titleController ?? TextEditingController(),
-        urlController = urlController ?? TextEditingController(),
-        typeController = typeController ?? TextEditingController();
+  }) : titleController = titleController ?? TextEditingController(),
+       urlController = urlController ?? TextEditingController(),
+       typeController = typeController ?? TextEditingController();
 
   factory _SourceFormState.fromInitial(PackageFormSourceData data) {
     return _SourceFormState(

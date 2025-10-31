@@ -31,8 +31,9 @@ class _MatchPairsScreenState extends ConsumerState<MatchPairsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final pairsAsync =
-        ref.watch(packageWordDefinitionPairsProvider(widget.packageId));
+    final pairsAsync = ref.watch(
+      packageWordDefinitionPairsProvider(widget.packageId),
+    );
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -84,8 +85,9 @@ class _MatchPairsScreenState extends ConsumerState<MatchPairsScreen> {
           const SizedBox(height: 8),
           Text(
             message,
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: theme.colorScheme.error),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.error,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -104,15 +106,13 @@ class _MatchPairsScreenState extends ConsumerState<MatchPairsScreen> {
             color: theme.colorScheme.primary,
           ),
           const SizedBox(height: 12),
-          Text(
-            'No pairs available yet',
-            style: theme.textTheme.titleMedium,
-          ),
+          Text('No pairs available yet', style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(
             'Add definitions to this package to unlock the matching game.',
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -122,8 +122,9 @@ class _MatchPairsScreenState extends ConsumerState<MatchPairsScreen> {
 
   Widget _buildGame(ThemeData theme, List<WordDefinitionPair> pairs) {
     final totalPairs = pairs.length;
-    final progressValue =
-        totalPairs == 0 ? 0.0 : _matchedPairKeys.length / totalPairs;
+    final progressValue = totalPairs == 0
+        ? 0.0
+        : _matchedPairKeys.length / totalPairs;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,19 +132,19 @@ class _MatchPairsScreenState extends ConsumerState<MatchPairsScreen> {
         Row(
           children: [
             Chip(
-              label: Text(
-                'Matched $_score / $totalPairs',
-              ),
+              label: Text('Matched $_score / $totalPairs'),
               backgroundColor: theme.colorScheme.primary.withOpacity(0.12),
-              labelStyle: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.primary),
+              labelStyle: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.primary,
+              ),
             ),
             const SizedBox(width: 12),
             Chip(
               label: Text('Attempts $_attempts'),
               backgroundColor: theme.colorScheme.secondary.withOpacity(0.12),
-              labelStyle: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.secondary),
+              labelStyle: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.secondary,
+              ),
             ),
           ],
         ),
@@ -254,10 +255,7 @@ class _MatchPairsScreenState extends ConsumerState<MatchPairsScreen> {
                 color: theme.colorScheme.primary,
               ),
               const SizedBox(height: 12),
-              Text(
-                'Pairs completed!',
-                style: theme.textTheme.headlineSmall,
-              ),
+              Text('Pairs completed!', style: theme.textTheme.headlineSmall),
               const SizedBox(height: 8),
               Text(
                 'You matched all $totalPairs pairs.',
@@ -437,23 +435,20 @@ class _MatchCardTile extends StatelessWidget {
     final backgroundColor = isMatched
         ? baseColor.withOpacity(0.2)
         : isSelected
-            ? baseColor.withOpacity(0.16)
-            : theme.colorScheme.surface;
+        ? baseColor.withOpacity(0.16)
+        : theme.colorScheme.surface;
     final borderColor = isMatched
         ? baseColor
         : isSelected
-            ? baseColor.withOpacity(0.7)
-            : theme.colorScheme.outlineVariant;
+        ? baseColor.withOpacity(0.7)
+        : theme.colorScheme.outlineVariant;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         color: backgroundColor,
-        border: Border.all(
-          color: borderColor,
-          width: 1.4,
-        ),
+        border: Border.all(color: borderColor, width: 1.4),
         boxShadow: isSelected
             ? [
                 BoxShadow(
