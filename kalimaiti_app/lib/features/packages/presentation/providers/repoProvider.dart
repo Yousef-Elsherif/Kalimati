@@ -5,5 +5,5 @@ import 'package:kalimaiti_app/features/packages/data/repository/package_repo_loc
 
 final packageRepoProvider = FutureProvider<PackageRepository>((ref) async {
   final db = await ref.watch(databaseProvider.future);
-  return PackageRepoLocalDb(db.packageDao);
+  return PackageRepoLocalDb(db.packageDao, db);
 });

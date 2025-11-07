@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/data/database/database_provider.dart';
 import '../../../../core/data/database/entities/package_entity.dart';
-import '../../../../core/data/database/entities/user_entity.dart';
+import '../../../../core/utils/responsive.dart';
 
 class PackagesListing extends ConsumerStatefulWidget {
   const PackagesListing({
@@ -59,20 +59,298 @@ class _PackagesListingState extends ConsumerState<PackagesListing> {
 
     if (query.isEmpty) return true;
     final hay =
-        '${pkg.title} ${pkg.description} ${pkg.category} ${pkg.language}'
-            .toLowerCase();
-    return hay.contains(query);
+        pkg.title +
+        ' ' +
+        pkg.description +
+        ' ' +
+        pkg.category +
+        ' ' +
+        pkg.language;
+    return hay.toLowerCase().contains(query);
   }
 
   Future<Map<String, String>> _loadAuthorNames() async {
     final db = await ref.read(databaseProvider.future);
     final users = await db.userDao.findAllUsers();
-    return {
-      for (final UserEntity user in users)
-        user.email.toLowerCase(): ('${user.firstName} ${user.lastName}')
-            .trim()
-            .replaceAll(RegExp(r'\s+'), ' '),
-    };
+    final result = <String, String>{};
+    for (final user in users) {
+      final name = (user.firstName + ' ' + user.lastName).trim().replaceAll(
+        RegExp(r'\s+'),
+        ' ',
+      );
+      result[user.email.toLowerCase()] = name;
+    }
+    return result;
+  }
+
+  Widget _buildPackageCard(
+    BuildContext context,
+    PackageEntity package,
+    Map<String, String> authorNames,
+  ) {
+    final cardColor = _getCardColor(package.level);
+    final radius = Responsive.borderRadius(context);
+
+    return Container(
+      margin: EdgeInsets.only(bottom: context.isMobile ? 16 : 0),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [cardColor, cardColor.withOpacity(0.8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(radius),
+        boxShadow: [
+          BoxShadow(
+            color: cardColor.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              if (widget.onPackageSelected != null) {
+                widget.onPackageSelected!(package);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Selected: ${package.title}')),
+                );
+              }
+            },
+            child: Padding(
+              padding: Responsive.padding(context),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          package.title,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: Responsive.fontSize(context, 22),
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          package.level,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    package.category,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: Colors.white,
+                        backgroundImage: package.iconUrl.isNotEmpty
+                            ? NetworkImage(package.iconUrl)
+                            : null,
+                        child: package.iconUrl.isEmpty
+                            ? Icon(Icons.person, color: cardColor)
+                            : null,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              authorNames[package.author.toLowerCase()] ??
+                                  package.author,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.95),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                package.language,
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.95),
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  widget.showOwnerActions
+                      ? Row(
+                          children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  if (widget.onEditPackage != null) {
+                                    widget.onEditPackage!(package);
+                                  }
+                                },
+                                child: Container(
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        const Color.fromARGB(
+                                          255,
+                                          193,
+                                          191,
+                                          191,
+                                        ).withOpacity(0.95),
+                                        const Color.fromARGB(
+                                          255,
+                                          255,
+                                          255,
+                                          255,
+                                        ).withOpacity(0.85),
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.3),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: const Text(
+                                    'Edit',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red.shade400,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  minimumSize: const Size.fromHeight(48),
+                                  padding: EdgeInsets.zero,
+                                ),
+                                onPressed: () {
+                                  if (widget.onDeletePackage != null) {
+                                    widget.onDeletePackage!(package);
+                                  }
+                                },
+                                child: const Text(
+                                  'Delete',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color.fromARGB(
+                                  255,
+                                  193,
+                                  191,
+                                  191,
+                                ).withOpacity(0.95),
+                                const Color.fromARGB(
+                                  255,
+                                  255,
+                                  255,
+                                  255,
+                                ).withOpacity(0.85),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Text(
+                            'Start Learning',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -89,7 +367,7 @@ class _PackagesListingState extends ConsumerState<PackagesListing> {
         return Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(16.0),
+              padding: Responsive.padding(context),
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [
@@ -131,28 +409,39 @@ class _PackagesListingState extends ConsumerState<PackagesListing> {
                               },
                             ),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(
+                          Responsive.borderRadius(context),
+                        ),
                         borderSide: BorderSide.none,
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(
+                          Responsive.borderRadius(context),
+                        ),
                         borderSide: BorderSide.none,
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(
+                          Responsive.borderRadius(context),
+                        ),
                         borderSide: BorderSide(
                           color: Theme.of(context).colorScheme.primary,
                           width: 2,
                         ),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
+                      contentPadding: EdgeInsets.symmetric(
                         horizontal: 16,
-                        vertical: 14,
+                        vertical: Responsive.value(
+                          context,
+                          mobile: 14,
+                          tablet: 16,
+                          desktop: 18,
+                        ),
                       ),
                     ),
                     onChanged: (_) => setState(() {}),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: Responsive.spacing(context)),
                   Row(
                     children: [
                       Icon(
@@ -238,348 +527,35 @@ class _PackagesListingState extends ConsumerState<PackagesListing> {
                     );
                   }
 
+                  if (context.isDesktop || context.isTablet) {
+                    final crossAxisCount = Responsive.gridColumns(context);
+                    return GridView.builder(
+                      padding: Responsive.padding(context),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: Responsive.spacing(context) * 2,
+                        mainAxisSpacing: Responsive.spacing(context) * 2,
+                        childAspectRatio: Responsive.value(
+                          context,
+                          mobile: 0.75,
+                          tablet: 1.4,
+                          desktop: 1.6,
+                        ),
+                      ),
+                      itemCount: filtered.length,
+                      itemBuilder: (context, index) {
+                        final package = filtered[index];
+                        return _buildPackageCard(context, package, authorNames);
+                      },
+                    );
+                  }
+
                   return ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                    padding: Responsive.padding(context),
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
                       final package = filtered[index];
-                      final cardColor = _getCardColor(package.level);
-
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [cardColor, cardColor.withOpacity(0.8)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(24),
-                          boxShadow: [
-                            BoxShadow(
-                              color: cardColor.withOpacity(0.3),
-                              blurRadius: 12,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(24),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () {
-                                if (widget.onPackageSelected != null) {
-                                  widget.onPackageSelected!(package);
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Selected: ${package.title}',
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            package.title,
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 6,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white.withOpacity(
-                                              0.3,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            package.level,
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      package.category,
-                                      style: TextStyle(
-                                        color: Colors.white.withOpacity(0.9),
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-
-                                    // Instructor info
-                                    Row(
-                                      children: [
-                                        CircleAvatar(
-                                          radius: 24,
-                                          backgroundColor: Colors.white,
-                                          backgroundImage:
-                                              package.iconUrl.isNotEmpty
-                                              ? NetworkImage(package.iconUrl)
-                                              : null,
-                                          child: package.iconUrl.isEmpty
-                                              ? Icon(
-                                                  Icons.person,
-                                                  color: cardColor,
-                                                )
-                                              : null,
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                authorNames[package.author
-                                                        .toLowerCase()] ??
-                                                    package.author,
-                                                style: TextStyle(
-                                                  color: Colors.white
-                                                      .withOpacity(0.95),
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 2),
-                                              Row(
-                                                children: [
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 8,
-                                                          vertical: 3,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white
-                                                          .withOpacity(0.3),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            8,
-                                                          ),
-                                                    ),
-                                                    child: Text(
-                                                      package.language,
-                                                      style: TextStyle(
-                                                        color: Colors.white
-                                                            .withOpacity(0.95),
-                                                        fontSize: 11,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 20),
-
-                                    widget.showOwnerActions
-                                        ? Row(
-                                            children: [
-                                              Expanded(
-                                                child: GestureDetector(
-                                                  onTap: () {
-                                                    if (widget.onEditPackage !=
-                                                        null) {
-                                                      widget.onEditPackage!(
-                                                        package,
-                                                      );
-                                                    } else {
-                                                      ScaffoldMessenger.of(
-                                                        context,
-                                                      ).showSnackBar(
-                                                        SnackBar(
-                                                          content: Text(
-                                                            'Edit ${package.title}',
-                                                          ),
-                                                        ),
-                                                      );
-                                                    }
-                                                  },
-                                                  child: Container(
-                                                    height: 48,
-                                                    decoration: BoxDecoration(
-                                                      gradient: LinearGradient(
-                                                        colors: [
-                                                          const Color.fromARGB(
-                                                            255,
-                                                            193,
-                                                            191,
-                                                            191,
-                                                          ).withOpacity(0.95),
-                                                          const Color.fromARGB(
-                                                            255,
-                                                            255,
-                                                            255,
-                                                            255,
-                                                          ).withOpacity(0.85),
-                                                        ],
-                                                      ),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            12,
-                                                          ),
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                          color: Colors.black
-                                                              .withOpacity(0.3),
-                                                          blurRadius: 8,
-                                                          offset: const Offset(
-                                                            0,
-                                                            4,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    alignment: Alignment.center,
-                                                    child: const Text(
-                                                      'Edit',
-                                                      style: TextStyle(
-                                                        color: Colors.black,
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        letterSpacing: 0.5,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 12),
-                                              Expanded(
-                                                child: ElevatedButton(
-                                                  style: ElevatedButton.styleFrom(
-                                                    backgroundColor:
-                                                        Colors.red.shade400,
-                                                    foregroundColor:
-                                                        Colors.white,
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            12,
-                                                          ),
-                                                    ),
-                                                    minimumSize:
-                                                        const Size.fromHeight(
-                                                          48,
-                                                        ),
-                                                    padding: EdgeInsets.zero,
-                                                  ),
-                                                  onPressed: () {
-                                                    if (widget
-                                                            .onDeletePackage !=
-                                                        null) {
-                                                      widget.onDeletePackage!(
-                                                        package,
-                                                      );
-                                                    } else {
-                                                      ScaffoldMessenger.of(
-                                                        context,
-                                                      ).showSnackBar(
-                                                        SnackBar(
-                                                          content: Text(
-                                                            'Delete ${package.title}',
-                                                          ),
-                                                        ),
-                                                      );
-                                                    }
-                                                  },
-                                                  child: const Padding(
-                                                    padding: EdgeInsets.zero,
-                                                    child: Text(
-                                                      'Delete',
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        letterSpacing: 0.5,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          )
-                                        : Container(
-                                            width: double.infinity,
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 16,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              gradient: LinearGradient(
-                                                colors: [
-                                                  const Color.fromARGB(
-                                                    255,
-                                                    193,
-                                                    191,
-                                                    191,
-                                                  ).withOpacity(0.95),
-                                                  const Color.fromARGB(
-                                                    255,
-                                                    255,
-                                                    255,
-                                                    255,
-                                                  ).withOpacity(0.85),
-                                                ],
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(16),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.black
-                                                      .withOpacity(0.3),
-                                                  blurRadius: 8,
-                                                  offset: const Offset(0, 4),
-                                                ),
-                                              ],
-                                            ),
-                                            child: const Text(
-                                              'Start Learning',
-                                              textAlign: TextAlign.center,
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w600,
-                                                letterSpacing: 0.5,
-                                              ),
-                                            ),
-                                          ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
+                      return _buildPackageCard(context, package, authorNames);
                     },
                   );
                 },

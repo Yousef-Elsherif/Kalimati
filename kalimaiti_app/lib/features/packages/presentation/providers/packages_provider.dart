@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/data/database/entities/package_entity.dart';
 import '../../domain/contracts/package_repo.dart';
+import '../../domain/models/learning_package.dart';
 import 'repoProvider.dart';
 
 class PackagesState {
@@ -108,4 +109,26 @@ class _LoadingRepository implements PackageRepository {
 
   @override
   Future<void> deletePackage(PackageEntity package) async {}
+
+  // New aggregate methods - return empty/null during loading
+  @override
+  Future<LearningPackage?> getLearningPackageById(int id) async => null;
+
+  @override
+  Future<List<LearningPackage>> getAllLearningPackages() async => [];
+
+  @override
+  Future<int> saveLearningPackage(LearningPackage package) async => 0;
+
+  @override
+  Future<void> updateLearningPackage(LearningPackage package) async {}
+
+  @override
+  Future<void> deleteLearningPackageById(int id) async {}
+
+  @override
+  Future<String> exportLearningPackageAsJson(int id) async => '{}';
+
+  @override
+  Future<int> importLearningPackageFromJson(String jsonString) async => 0;
 }
