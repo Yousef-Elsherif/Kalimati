@@ -1,0 +1,597 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/data/database/database_provider.dart';
+import '../../../../core/data/database/entities/package_entity.dart';
+import '../../../../core/utils/responsive.dart';
+
+class PackagesListing extends ConsumerStatefulWidget {
+  const PackagesListing({
+    super.key,
+    required this.packages,
+    this.onPackageSelected,
+    this.showOwnerActions = false,
+    this.onEditPackage,
+    this.onDeletePackage,
+  });
+
+  final List<PackageEntity> packages;
+  final ValueChanged<PackageEntity>? onPackageSelected;
+  final bool showOwnerActions;
+  final ValueChanged<PackageEntity>? onEditPackage;
+  final ValueChanged<PackageEntity>? onDeletePackage;
+
+  @override
+  ConsumerState<PackagesListing> createState() => _PackagesListingState();
+}
+
+class _PackagesListingState extends ConsumerState<PackagesListing> {
+  final TextEditingController _searchController = TextEditingController();
+  String _selectedLevel = 'All';
+  late Future<Map<String, String>> _authorNamesFuture;
+
+  static const List<String> _levels = [
+    'All',
+    'Beginner',
+    'Intermediate',
+    'Advanced',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _authorNamesFuture = _loadAuthorNames();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  bool _matchesFilter(PackageEntity pkg) {
+    final query = _searchController.text.trim().toLowerCase();
+    final levelFilter = _selectedLevel.toLowerCase();
+
+    if (levelFilter != 'all' && pkg.level.toLowerCase() != levelFilter) {
+      return false;
+    }
+
+    if (query.isEmpty) return true;
+    final hay =
+        pkg.title +
+        ' ' +
+        pkg.description +
+        ' ' +
+        pkg.category +
+        ' ' +
+        pkg.language;
+    return hay.toLowerCase().contains(query);
+  }
+
+  Future<Map<String, String>> _loadAuthorNames() async {
+    final db = await ref.read(databaseProvider.future);
+    final users = await db.userDao.findAllUsers();
+    final result = <String, String>{};
+    for (final user in users) {
+      final name = (user.firstName + ' ' + user.lastName).trim().replaceAll(
+        RegExp(r'\s+'),
+        ' ',
+      );
+      result[user.email.toLowerCase()] = name;
+    }
+    return result;
+  }
+
+  Widget _buildPackageCard(
+    BuildContext context,
+    PackageEntity package,
+    Map<String, String> authorNames,
+  ) {
+    final cardColor = _getCardColor(package.level);
+    final radius = Responsive.borderRadius(context);
+
+    return Container(
+      margin: EdgeInsets.only(bottom: context.isMobile ? 16 : 0),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [cardColor, cardColor.withOpacity(0.8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(radius),
+        boxShadow: [
+          BoxShadow(
+            color: cardColor.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              if (widget.onPackageSelected != null) {
+                widget.onPackageSelected!(package);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Selected: ${package.title}')),
+                );
+              }
+            },
+            child: Padding(
+              padding: Responsive.padding(context),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          package.title,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: Responsive.fontSize(context, 22),
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          package.level,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    package.category,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: Colors.white,
+                        backgroundImage: package.iconUrl.isNotEmpty
+                            ? NetworkImage(package.iconUrl)
+                            : null,
+                        child: package.iconUrl.isEmpty
+                            ? Icon(Icons.person, color: cardColor)
+                            : null,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              authorNames[package.author.toLowerCase()] ??
+                                  package.author,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.95),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                package.language,
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.95),
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  widget.showOwnerActions
+                      ? Row(
+                          children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  if (widget.onEditPackage != null) {
+                                    widget.onEditPackage!(package);
+                                  }
+                                },
+                                child: Container(
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        const Color.fromARGB(
+                                          255,
+                                          193,
+                                          191,
+                                          191,
+                                        ).withOpacity(0.95),
+                                        const Color.fromARGB(
+                                          255,
+                                          255,
+                                          255,
+                                          255,
+                                        ).withOpacity(0.85),
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.3),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: const Text(
+                                    'Edit',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red.shade400,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  minimumSize: const Size.fromHeight(48),
+                                  padding: EdgeInsets.zero,
+                                ),
+                                onPressed: () {
+                                  if (widget.onDeletePackage != null) {
+                                    widget.onDeletePackage!(package);
+                                  }
+                                },
+                                child: const Text(
+                                  'Delete',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color.fromARGB(
+                                  255,
+                                  193,
+                                  191,
+                                  191,
+                                ).withOpacity(0.95),
+                                const Color.fromARGB(
+                                  255,
+                                  255,
+                                  255,
+                                  255,
+                                ).withOpacity(0.85),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Text(
+                            'Start Learning',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Map<String, String>>(
+      future: _authorNamesFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final authorNames = snapshot.data ?? const {};
+
+        return Column(
+          children: [
+            Container(
+              padding: Responsive.padding(context),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      hintText: 'Search packages...',
+                      hintStyle: TextStyle(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.5),
+                      ),
+                      suffixIcon: _searchController.text.isEmpty
+                          ? null
+                          : IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                setState(() {
+                                  _searchController.clear();
+                                });
+                              },
+                            ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                          Responsive.borderRadius(context),
+                        ),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                          Responsive.borderRadius(context),
+                        ),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                          Responsive.borderRadius(context),
+                        ),
+                        borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 2,
+                        ),
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: Responsive.value(
+                          context,
+                          mobile: 14,
+                          tablet: 16,
+                          desktop: 18,
+                        ),
+                      ),
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  SizedBox(height: Responsive.spacing(context)),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.filter_list,
+                        size: 20,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Level:',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withOpacity(0.7),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: _levels.map((level) {
+                              final isSelected = _selectedLevel == level;
+                              final levelColor = _getLevelFilterColor(level);
+
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: FilterChip(
+                                  label: Text(level),
+                                  selected: isSelected,
+                                  onSelected: (selected) {
+                                    setState(() {
+                                      _selectedLevel = level;
+                                    });
+                                  },
+                                  backgroundColor: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHighest
+                                      .withOpacity(0.3),
+                                  selectedColor: levelColor,
+                                  checkmarkColor: Colors.white,
+                                  labelStyle: TextStyle(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Theme.of(
+                                            context,
+                                          ).colorScheme.onSurface,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                                  ),
+                                  side: BorderSide(
+                                    color: isSelected
+                                        ? levelColor
+                                        : Colors.transparent,
+                                    width: 1,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Builder(
+                builder: (context) {
+                  final filtered = widget.packages
+                      .where(_matchesFilter)
+                      .toList();
+
+                  if (filtered.isEmpty) {
+                    return const Center(
+                      child: Text('No packages match your search/filter.'),
+                    );
+                  }
+
+                  if (context.isDesktop || context.isTablet) {
+                    final crossAxisCount = Responsive.gridColumns(context);
+                    return GridView.builder(
+                      padding: Responsive.padding(context),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: Responsive.spacing(context) * 2,
+                        mainAxisSpacing: Responsive.spacing(context) * 2,
+                        childAspectRatio: Responsive.value(
+                          context,
+                          mobile: 0.75,
+                          tablet: 1.4,
+                          desktop: 1.6,
+                        ),
+                      ),
+                      itemCount: filtered.length,
+                      itemBuilder: (context, index) {
+                        final package = filtered[index];
+                        return _buildPackageCard(context, package, authorNames);
+                      },
+                    );
+                  }
+
+                  return ListView.builder(
+                    padding: Responsive.padding(context),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final package = filtered[index];
+                      return _buildPackageCard(context, package, authorNames);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Color _getCardColor(String level) {
+    switch (level.toLowerCase()) {
+      case 'beginner':
+        return const Color(0xFF4CAF50);
+      case 'intermediate':
+        return const Color(0xFFFF9800);
+      case 'advanced':
+        return const Color(0xFFE57373);
+      default:
+        return const Color(0xFF9E9E9E);
+    }
+  }
+
+  Color _getLevelFilterColor(String level) {
+    switch (level.toLowerCase()) {
+      case 'beginner':
+        return const Color(0xFF4CAF50);
+      case 'intermediate':
+        return const Color(0xFFFF9800);
+      case 'advanced':
+        return const Color(0xFFE57373);
+      case 'all':
+        return const Color.fromARGB(255, 193, 191, 191).withOpacity(0.85);
+      default:
+        return const Color(0xFF9E9E9E);
+    }
+  }
+}
